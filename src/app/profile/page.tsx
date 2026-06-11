@@ -35,15 +35,18 @@ export default function ProfilePage() {
 
     try {
       if (authMode === 'signup') {
-        const { error } = await supabase.auth.signUp({ 
+        const { data, error } = await supabase.auth.signUp({ 
           email, 
           password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          }
         });
         if (error) throw error;
-        setAuthError('Check your email to confirm your account!');
+        
+        if (data.session) {
+          // Instantly logged in!
+          return;
+        } else {
+          setAuthError('Check your email to confirm your account!');
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
