@@ -32,9 +32,16 @@ export default function AudioPlayer({ text, nextLink }: Props) {
       if (savedURI && availableVoices.some(v => v.voiceURI === savedURI)) {
         setSelectedVoiceURI(savedURI);
       } else if (availableVoices.length > 0) {
-        // Fallback to premium/default
-        const premium = availableVoices.find(v => v.name.includes('Premium') || v.name.includes('Samantha') || v.name.includes('Alex'));
-        setSelectedVoiceURI(premium ? premium.voiceURI : availableVoices[0].voiceURI);
+        // Fallback to Google UK English Male, or other UK English Male equivalents across OS
+        const defaultVoice = 
+          availableVoices.find(v => v.name === 'Google UK English Male') || 
+          availableVoices.find(v => v.name.includes('Daniel') && v.lang === 'en-GB') || 
+          availableVoices.find(v => v.name.includes('Arthur') && v.lang === 'en-GB') || 
+          availableVoices.find(v => v.lang === 'en-GB' && !v.name.toLowerCase().includes('female')) ||
+          availableVoices.find(v => v.name.includes('Premium') || v.name.includes('Samantha') || v.name.includes('Alex')) ||
+          availableVoices[0];
+          
+        setSelectedVoiceURI(defaultVoice.voiceURI);
       }
     };
 
