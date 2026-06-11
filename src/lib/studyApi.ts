@@ -189,6 +189,7 @@ export interface HistoricalGeography {
   extract: string;
   thumbnailUrl?: string;
   gallery?: Array<{ url: string; caption: string }>;
+  isNT?: boolean;
 }
 
 const BIBLICAL_CITIES = [
@@ -220,6 +221,7 @@ const BIBLICAL_CITIES = [
  * Fetches Historical Geography data from Wikipedia.
  */
 export async function getHistoricalGeography(book: string, verseText: string): Promise<HistoricalGeography | null> {
+  const isNT = ['Matthew', 'Mark', 'Luke', 'John', 'Acts', 'Romans', '1 Corinthians', '2 Corinthians', 'Galatians', 'Ephesians', 'Philippians', 'Colossians', '1 Thessalonians', '2 Thessalonians', '1 Timothy', '2 Timothy', 'Titus', 'Philemon', 'Hebrews', 'James', '1 Peter', '2 Peter', '1 John', '2 John', '3 John', 'Jude', 'Revelation'].includes(book);
   const verseLower = verseText.toLowerCase();
   const foundCity = BIBLICAL_CITIES.find(city => verseLower.includes(city.toLowerCase()));
 
@@ -260,7 +262,8 @@ export async function getHistoricalGeography(book: string, verseText: string): P
           description: summaryData.description || 'Historical Biblical Location',
           extract: summaryData.extract,
           thumbnailUrl: summaryData.thumbnail?.source,
-          gallery: gallery.length > 0 ? gallery : undefined
+          gallery: gallery.length > 0 ? gallery : undefined,
+          isNT
         };
       }
     } catch (e) {
@@ -272,5 +275,6 @@ export async function getHistoricalGeography(book: string, verseText: string): P
     title: `Geography of ${book}`,
     description: 'General Historical Context',
     extract: `The events of ${book} take place within the broader historical and geographical context of the ancient Near East and Mediterranean world. The text reflects the cultural, political, and physical landscapes of its time.`,
+    isNT
   };
 }

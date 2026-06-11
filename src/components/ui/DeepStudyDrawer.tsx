@@ -10,11 +10,11 @@ interface Props {
   onClose: () => void;
   book: string;
   chapter: number;
-  verse: number;
+  verseRef: string;
   verseText: string;
 }
 
-export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse, verseText }: Props) {
+export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseRef, verseText }: Props) {
   const [activeTab, setActiveTab] = useState<'strongs' | 'commentary' | 'crossref' | 'maps'>('strongs');
   
   const [loading, setLoading] = useState(false);
@@ -41,10 +41,12 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse,
     const fetchData = async () => {
       setLoading(true);
       try {
+        // Parse the first verse from the reference string (e.g. "1-5" -> 1)
+        const firstVerseNum = parseInt(verseRef.split('-')[0]) || 1;
         const [sData, cData, crData, gData] = await Promise.all([
-          getStrongsData(book, chapter, verse, verseText),
-          getCommentary(book, chapter, verse, verseText),
-          getCrossReferences(book, chapter, verse, verseText),
+          getStrongsData(book, chapter, firstVerseNum, verseText),
+          getCommentary(book, chapter, firstVerseNum, verseText),
+          getCrossReferences(book, chapter, firstVerseNum, verseText),
           getHistoricalGeography(book, verseText)
         ]);
         if (isMounted) {
@@ -62,11 +64,11 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse,
 
     fetchData();
     return () => { isMounted = false; };
-  }, [isOpen, book, chapter, verse]);
+  }, [isOpen, book, chapter, verseRef]);
 
   if (!isOpen) return null;
 
-  const reference = `${book.charAt(0).toUpperCase() + book.slice(1)} ${chapter}:${verse}`;
+  const reference = `${book.charAt(0).toUpperCase() + book.slice(1)} ${chapter}:${verseRef}`;
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -137,25 +139,38 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse,
               )}
 
               {activeTab === 'maps' && geography && (
-                <div className={styles.mapsTab} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className={styles.mapsTab} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   
-                  {/* Interactive Zoomable Map (Only if specific city found) */}
-                  {!geography.title.startsWith('Geography of') && (
-                    <div>
-                      <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-accent)' }}>Interactive Map</h4>
-                      <div className={styles.mapWidget} style={{ padding: 0, overflow: 'hidden' }}>
-                        <iframe 
-                          width="100%" 
-                          height="100%" 
-                          style={{ border: 0, borderRadius: 'var(--radius-md)' }} 
-                          loading="lazy" 
-                          allowFullScreen 
-                          referrerPolicy="no-referrer-when-downgrade" 
-                          src={`https://www.google.com/maps?q=${geography.title}, Middle East&output=embed`}
-                        ></iframe>
-                      </div>
+                  {/* Current World Map */}
+                  <div>
+                    <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-accent)' }}>Current Map</h4>
+                    <div className={styles.mapWidget} style={{ padding: 0, overflow: 'hidden', height: '250px' }}>
+                      <iframe 
+                        width="100%" 
+                        height="100%" 
+                        style={{ border: 0, borderRadius: 'var(--radius-md)' }} 
+                        loading="lazy" 
+                        allowFullScreen 
+                        referrerPolicy="no-referrer-when-downgrade" 
+                        src={`https://www.google.com/maps?q=${geography.title.startsWith('Geography') ? 'Jerusalem, Israel' : geography.title}&output=embed`}
+                      ></iframe>
                     </div>
-                  )}
+                  </div>
+
+                  {/* Historical World Map */}
+                  <div>
+                    <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-accent)' }}>Historical Context Map</h4>
+                    <div className={styles.mapWidget} style={{ padding: 0, overflow: 'hidden', height: 'auto' }}>
+                      <img 
+                        src={geography.isNT 
+                          ? 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Roman_Empire_125.svg/1200px-Roman_Empire_125.svg.png' 
+                          : 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Ancient_Near_East_in_the_13th_century_BC.svg/1200px-Ancient_Near_East_in_the_13th_century_BC.svg.png'
+                        } 
+                        alt="Historical Map"
+                        style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}
+                      />
+                    </div>
+                  </div>
                   
                   {/* Image Gallery */}
                   {geography.gallery && geography.gallery.length > 0 && (

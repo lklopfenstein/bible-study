@@ -174,7 +174,7 @@ export default function ScriptureContent({ verses, book }: Props) {
         onClose={() => setIsDrawerOpen(false)} 
         book={book} 
         chapter={verses[0]?.chapter || 1} 
-        verse={firstSelectedVerse} 
+        verseRef={rangeString} 
         verseText={combinedText}
       />
     </>
