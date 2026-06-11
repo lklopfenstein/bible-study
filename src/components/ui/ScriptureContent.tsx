@@ -105,58 +105,69 @@ export default function ScriptureContent({ verses, book }: Props) {
   return (
     <>
       {verses.map((verse) => (
-        <InteractiveVerse 
-          key={verse.verse} 
-          verse={verse} 
-          book={book} 
-          isSelected={selectedVerses.includes(verse.verse)}
-          onToggleSelect={() => handleToggleSelect(verse.verse)}
-        />
-      ))}
-
-      {isNoteEditorOpen && (
-        <div style={{ marginTop: '20px' }}>
-          <InlineStudyContent 
-            type="note"
-            title={`${referenceString} Notes`}
-            initialContent=""
-            onClose={() => setIsNoteEditorOpen(false)}
-            onSaveNote={async (text) => {
-              // Save note to the first selected verse
-              const targetVerse = selectedVerses[0];
-              const singleRef = `${book.charAt(0).toUpperCase() + book.slice(1)} ${verses[0].chapter}:${targetVerse}`;
-              
-              const globalNotesStr = localStorage.getItem('study-bible-notes');
-              let notes = globalNotesStr ? JSON.parse(globalNotesStr) : [];
-              notes = notes.filter((n: any) => n.reference.toLowerCase() !== singleRef.toLowerCase());
-              
-              if (text.trim() !== '') {
-                notes.push({
-                  id: Date.now().toString(),
-                  reference: singleRef,
-                  text: text,
-                  date: new Date().toISOString().split('T')[0]
-                });
-              }
-              localStorage.setItem('study-bible-notes', JSON.stringify(notes));
-
-              if (user) {
-                await supabase.from('user_data').delete()
-                  .match({ user_id: user.id, book, chapter: verses[0].chapter, verse: targetVerse, type: 'note' });
-                if (text.trim() !== '') {
-                  await supabase.from('user_data').insert({
-                    user_id: user.id, book, chapter: verses[0].chapter, verse: targetVerse, type: 'note', content: text
-                  });
-                }
-              }
-              
-              window.dispatchEvent(new Event('notes-updated'));
-              setIsNoteEditorOpen(false);
-              handleClearSelection();
-            }}
+        <div key={verse.verse}>
+          <InteractiveVerse 
+            verse={verse} 
+            book={book} 
+            isSelected={selectedVerses.includes(verse.verse)}
+            onToggleSelect={() => handleToggleSelect(verse.verse)}
           />
+          {isNoteEditorOpen && selectedVerses[selectedVerses.length - 1] === verse.verse && (
+            <div style={{ margin: '16px 0' }}>
+              <InlineStudyContent 
+                type="note"
+                title={`${referenceString} Notes`}
+                initialContent={(() => {
+                  const targetVerse = selectedVerses[0];
+                  const singleRef = `${book.charAt(0).toUpperCase() + book.slice(1)} ${verses[0].chapter}:${targetVerse}`;
+                  const globalNotesStr = localStorage.getItem('study-bible-notes');
+                  if (globalNotesStr) {
+                    try {
+                      const notes = JSON.parse(globalNotesStr);
+                      const existingNote = notes.find((n: any) => n.reference.toLowerCase() === singleRef.toLowerCase());
+                      if (existingNote) return existingNote.text;
+                    } catch (e) {}
+                  }
+                  return "";
+                })()}
+                onClose={() => setIsNoteEditorOpen(false)}
+                onSaveNote={async (text) => {
+                  const targetVerse = selectedVerses[0];
+                  const singleRef = `${book.charAt(0).toUpperCase() + book.slice(1)} ${verses[0].chapter}:${targetVerse}`;
+                  
+                  const globalNotesStr = localStorage.getItem('study-bible-notes');
+                  let notes = globalNotesStr ? JSON.parse(globalNotesStr) : [];
+                  notes = notes.filter((n: any) => n.reference.toLowerCase() !== singleRef.toLowerCase());
+                  
+                  if (text.trim() !== '') {
+                    notes.push({
+                      id: Date.now().toString(),
+                      reference: singleRef,
+                      text: text,
+                      date: new Date().toISOString().split('T')[0]
+                    });
+                  }
+                  localStorage.setItem('study-bible-notes', JSON.stringify(notes));
+
+                  if (user) {
+                    await supabase.from('user_data').delete()
+                      .match({ user_id: user.id, book, chapter: verses[0].chapter, verse: targetVerse, type: 'note' });
+                    if (text.trim() !== '') {
+                      await supabase.from('user_data').insert({
+                        user_id: user.id, book, chapter: verses[0].chapter, verse: targetVerse, type: 'note', content: text
+                      });
+                    }
+                  }
+                  
+                  window.dispatchEvent(new Event('notes-updated'));
+                  setIsNoteEditorOpen(false);
+                  handleClearSelection();
+                }}
+              />
+            </div>
+          )}
         </div>
-      )}
+      ))}
 
       {selectedVerses.length > 0 && !isDrawerOpen && !isNoteEditorOpen && (
         <GlobalActionBar 
