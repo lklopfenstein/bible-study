@@ -8,14 +8,37 @@ import { useUser } from '@/hooks/useUser';
 
 export default function Navbar() {
   const [readHref, setReadHref] = useState('/read/genesis/1');
-  const { user } = useUser();
+  const { user, loading, supabase } = useUser();
 
   useEffect(() => {
+    // Wait until auth state is determined
+    if (loading) return;
+
+    // Set local fallback first
     const saved = localStorage.getItem('bible-last-read');
     if (saved) {
       setReadHref(saved);
     }
-  }, []);
+
+    // Attempt cloud sync if user is logged in
+    const fetchCloudState = async () => {
+      if (user) {
+        const { data, error } = await supabase
+          .from('user_data')
+          .select('content')
+          .eq('user_id', user.id)
+          .eq('type', 'last_read')
+          .limit(1);
+          
+        if (data && data.length > 0 && !error && data[0].content) {
+          setReadHref(data[0].content);
+          localStorage.setItem('bible-last-read', data[0].content);
+        }
+      }
+    };
+
+    fetchCloudState();
+  }, [user, loading, supabase]);
 
   return (
     <nav className={styles.navbar}>
