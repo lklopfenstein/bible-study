@@ -85,6 +85,7 @@ export default function InteractiveVerse({ verse, book, isSelected, onToggleSele
 
   return (
     <span 
+      id={`v${verse.verse}`}
       className={`${styles.verseWrapper} ${isSelected ? styles.selected : ''}`} 
       style={{ backgroundColor: highlightColor !== 'transparent' && !isSelected ? highlightColor : undefined }}
       onClick={onToggleSelect}
