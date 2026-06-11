@@ -10,6 +10,7 @@
   box-shadow: var(--shadow-md);
   z-index: 150;
   animation: slideUp 0.15s ease-out forwards;
+  white-space: nowrap;
 }
 
 .actions {
@@ -62,6 +63,27 @@
 .actionBtn:hover {
   color: var(--text-primary);
   background-color: var(--bg-secondary);
+}
+
+.studyBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--text-accent);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  transition: all var(--transition-speed) ease;
+}
+
+.studyBtn:hover {
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 @keyframes slideUp {

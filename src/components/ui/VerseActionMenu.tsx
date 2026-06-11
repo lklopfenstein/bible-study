@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { useClickOutside } from '@/hooks/useClickOutside';
-import { Highlighter, Bookmark, FileText } from 'lucide-react';
+import { Highlighter, Bookmark, FileText, Library } from 'lucide-react';
 import styles from './VerseActionMenu.module.css';
 
 interface Props {
@@ -10,9 +10,10 @@ interface Props {
   onHighlight: (color: string) => void;
   onBookmark: () => void;
   onAddNote: () => void;
+  onDeepStudy: () => void;
 }
 
-export default function VerseActionMenu({ onClose, onHighlight, onBookmark, onAddNote }: Props) {
+export default function VerseActionMenu({ onClose, onHighlight, onBookmark, onAddNote, onDeepStudy }: Props) {
   const menuRef = useRef<HTMLDivElement>(null);
   useClickOutside(menuRef, onClose);
 
@@ -36,12 +37,19 @@ export default function VerseActionMenu({ onClose, onHighlight, onBookmark, onAd
         
         <div className={styles.divider} />
         
-        <button className={styles.actionBtn} onClick={() => { onBookmark(); onClose(); }}>
+        <button className={styles.actionBtn} onClick={() => { onBookmark(); onClose(); }} title="Bookmark">
           <Bookmark size={16} />
         </button>
         
-        <button className={styles.actionBtn} onClick={() => { onAddNote(); onClose(); }}>
+        <button className={styles.actionBtn} onClick={() => { onAddNote(); onClose(); }} title="Add Note">
           <FileText size={16} />
+        </button>
+        
+        <div className={styles.divider} />
+
+        <button className={styles.studyBtn} onClick={() => { onDeepStudy(); onClose(); }} title="Deep Study">
+          <Library size={16} />
+          <span>Study</span>
         </button>
       </div>
     </div>

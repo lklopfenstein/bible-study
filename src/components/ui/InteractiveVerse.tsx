@@ -5,6 +5,7 @@ import styles from './InteractiveVerse.module.css';
 import type { BibleVerse } from '@/lib/api';
 import VerseActionMenu from './VerseActionMenu';
 import InlineStudyContent from './InlineStudyContent';
+import DeepStudyDrawer from './DeepStudyDrawer';
 import { Bookmark as BookmarkIcon, FileText, Map } from 'lucide-react';
 import { useClickOutside } from '@/hooks/useClickOutside';
 
@@ -17,6 +18,7 @@ export default function InteractiveVerse({ verse, book }: Props) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isStudyContentOpen, setIsStudyContentOpen] = useState(false);
   const [studyContentType, setStudyContentType] = useState<'note' | 'map'>('note');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   
   const [highlightColor, setHighlightColor] = useState<string>('transparent');
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -123,6 +125,7 @@ export default function InteractiveVerse({ verse, book }: Props) {
             onHighlight={handleHighlight}
             onBookmark={handleBookmark}
             onAddNote={handleAddNote}
+            onDeepStudy={() => setIsDrawerOpen(true)}
           />
         )}
       </span>
@@ -138,6 +141,15 @@ export default function InteractiveVerse({ verse, book }: Props) {
           />
         </span>
       )}
+
+      {/* Deep Study Drawer */}
+      <DeepStudyDrawer 
+        isOpen={isDrawerOpen} 
+        onClose={() => setIsDrawerOpen(false)} 
+        book={book} 
+        chapter={verse.chapter} 
+        verse={verse.verse} 
+      />
     </>
   );
 }
