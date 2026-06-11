@@ -197,49 +197,12 @@ export async function getHistoricalGeography(book: string, verseText: string): P
   const foundCity = BIBLICAL_CITIES.find(city => verseLower.includes(city.toLowerCase()));
 
   if (foundCity) {
-    try {
-      const summaryRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(foundCity)}`);
-      let summaryData = null;
-      if (summaryRes.ok) summaryData = await summaryRes.json();
-
-      const mediaRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/media-list/${encodeURIComponent(foundCity)}`);
-      let gallery: Array<{url: string, caption: string}> = [];
-      
-      if (mediaRes.ok) {
-        const mediaData = await mediaRes.json();
-        if (mediaData.items) {
-          // Filter out SVGs and icons, grab the highest res src
-          const validImages = mediaData.items.filter((item: any) => 
-            item.type === 'image' && 
-            item.srcset && 
-            item.srcset.length > 0 &&
-            !item.title.toLowerCase().includes('.svg')
-          ).slice(0, 8); // Grab up to 8 images
-
-          gallery = validImages.map((item: any) => {
-            // Pick the highest resolution image available in the srcset
-            const bestSrc = item.srcset[item.srcset.length - 1].src;
-            return {
-              url: bestSrc.startsWith('//') ? `https:${bestSrc}` : bestSrc,
-              caption: item.title.replace('File:', '').replace(/_/g, ' ').replace(/\.[a-zA-Z0-9]+$/, '')
-            };
-          });
-        }
-      }
-
-      if (summaryData && summaryData.type !== 'disambiguation') {
-        return {
-          title: summaryData.title,
-          description: summaryData.description || 'Historical Biblical Location',
-          extract: summaryData.extract,
-          thumbnailUrl: summaryData.thumbnail?.source,
-          gallery: gallery.length > 0 ? gallery : undefined,
-          isNT
-        };
-      }
-    } catch (e) {
-      console.error('Failed to fetch Wikipedia data', e);
-    }
+    return {
+      title: `${foundCity} in Biblical Times`,
+      description: `Historical context and geography for ${foundCity}.`,
+      extract: `This location is mentioned in the selected text. The maps below provide both a modern view of where ${foundCity} is located today, as well as its historical placement during biblical times.`,
+      isNT
+    };
   }
 
   return {

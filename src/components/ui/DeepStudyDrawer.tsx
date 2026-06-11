@@ -185,51 +185,10 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
                       />
                     </div>
                   </div>
-                  
-                  {/* Image Gallery */}
-                  {geography.gallery && geography.gallery.length > 0 && (
-                    <div>
-                      <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-accent)' }}>Visual Context</h4>
-                      <div className={styles.galleryWrapper}>
-                        {geography.gallery.map((img, idx) => (
-                          <div key={idx} className={styles.galleryItem}>
-                            <div className={styles.galleryImageWrapper}>
-                              <img 
-                                src={img.url} 
-                                alt={img.caption} 
-                                className={styles.galleryImage} 
-                                style={{ cursor: 'zoom-in' }}
-                                onClick={() => setEnlargedImage(img.url)}
-                              />
-                            </div>
-                            <div className={styles.galleryCaption} title={img.caption}>
-                              {img.caption}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   <div style={{ padding: '16px', backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
                     <h3 style={{ margin: '0 0 8px 0', color: 'var(--text-accent)' }}>{geography.title}</h3>
                     <p style={{ margin: '0 0 16px 0', fontStyle: 'italic', color: 'var(--text-secondary)' }}>{geography.description}</p>
-                    
-                    {geography.thumbnailUrl && (!geography.gallery || geography.gallery.length === 0) && (
-                      <div style={{ marginBottom: '16px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border-color)', height: '200px' }}>
-                        <img 
-                          src={geography.thumbnailUrl} 
-                          alt={geography.title} 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }}
-                          onClick={() => setEnlargedImage(geography.thumbnailUrl!)}
-                        />
-                      </div>
-                    )}
-                    
                     <p style={{ margin: 0, lineHeight: 1.6, color: 'var(--text-primary)' }}>{geography.extract}</p>
-                    <p style={{ margin: '16px 0 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'right' }}>
-                      <em>Source: Wikimedia/Wikipedia REST API</em>
-                    </p>
                   </div>
                 </div>
               )}
