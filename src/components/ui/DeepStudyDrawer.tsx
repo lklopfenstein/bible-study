@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Search } from 'lucide-react';
 import styles from './DeepStudyDrawer.module.css';
 import { getStrongsData, getCommentary, getCrossReferences, getHistoricalGeography, StrongsDefinition, Commentary, CrossReference, HistoricalGeography } from '@/lib/studyApi';
 import { BIBLE_BOOKS } from '@/lib/bibleData';
@@ -114,6 +114,22 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
                         <span className={styles.transliteration}>({s.transliteration})</span>
                       </div>
                       <p className={styles.strongsDef}>{s.definition}</p>
+                      <div style={{ marginTop: '12px' }}>
+                        <a 
+                          href={`/search?q=${encodeURIComponent(s.word)}`}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            fontSize: '0.85rem',
+                            color: 'var(--text-accent)',
+                            textDecoration: 'none',
+                            fontWeight: 500
+                          }}
+                        >
+                          <Search size={14} style={{ marginRight: '4px' }} />
+                          Search all occurrences of "{s.word}"
+                        </a>
+                      </div>
                     </div>
                   )) : (
                     <div className={styles.emptyState}>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { BookOpen, Map, BookMarked, User } from 'lucide-react';
+import { BookOpen, Map, BookMarked, User, Search, Settings } from 'lucide-react';
 import styles from './Navbar.module.css';
 import { useUser } from '@/hooks/useUser';
 
@@ -25,9 +25,17 @@ export default function Navbar() {
         </Link>
       </div>
       <div className={styles.links}>
+        <Link href="/search" className={styles.link}>
+          <Search size={20} />
+          <span className="hidden sm:inline">Search</span>
+        </Link>
         <Link href={readHref} className={styles.link}>
           <BookOpen size={20} />
           <span>Read</span>
+        </Link>
+        <Link href="/settings" className={styles.link}>
+          <Settings size={20} />
+          <span className="hidden sm:inline">Offline</span>
         </Link>
         <Link href="/profile" className={styles.link}>
           <User size={20} color={user ? 'var(--text-accent)' : 'currentColor'} />

@@ -6,11 +6,13 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const lora = Lora({ subsets: ['latin'], variable: '--font-serif' });
 
 export const metadata: Metadata = {
-  title: 'Study Bible - A Beautiful & Cozy Reading Experience',
-  description: 'A highly organized and beautiful study Bible available for modern readers.',
+  title: 'Deep Study Bible',
+  description: 'A beautiful, distraction-free Bible reading and deep study application.',
+  manifest: '/manifest.json',
 };
 
 import Navbar from '@/components/layout/Navbar';
+import PWARegistration from '@/components/PWARegistration';
 import Script from 'next/script';
 
 export default function RootLayout({
@@ -19,10 +21,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${lora.variable}`}>
+    <html lang="en" className={`${inter.variable} ${lora.variable}`}>
+      <body className="font-sans antialiased bg-[#FCFBF8] text-stone-800 selection:bg-stone-200 min-h-screen flex flex-col">
+        <PWARegistration />
         <Navbar />
-        {children}
+        <main className="flex-grow pt-16">
+          {children}
+        </main>
         
         {/* BibleRefLink Integration */}
         <Script 
