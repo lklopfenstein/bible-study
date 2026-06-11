@@ -97,27 +97,37 @@ export async function getCommentary(book: string, chapter: number, verse: number
   ];
 }
 
-/**
- * Fetches Cross References actively.
- */
 export async function getCrossReferences(book: string, chapter: number, verse: number, verseText: string): Promise<CrossReference[]> {
-  await new Promise(resolve => setTimeout(resolve, 400));
-
   const hash = hashString(verseText);
   const relatedBooks = ['Genesis', 'Psalms', 'Isaiah', 'John', 'Romans', 'Revelation', 'Proverbs', 'Exodus'];
   
   const ref1Book = relatedBooks[hash % relatedBooks.length];
   const ref2Book = relatedBooks[(hash + 1) % relatedBooks.length];
 
-  return [
-    { 
-      reference: `${ref1Book} ${(hash % 10) + 1}:${(hash % 20) + 1}`, 
-      textSnippet: `This passage in ${ref1Book} mirrors the thematic elements found in ${book} ${chapter}:${verse}, establishing a continuous thread of scripture.` 
-    },
-    { 
-      reference: `${ref2Book} ${((hash+5) % 10) + 1}:${((hash+7) % 20) + 1}`, 
-      textSnippet: `A theological parallel that expands upon the core message delivered in this text.` 
+  const ref1 = `${ref1Book} ${(hash % 10) + 1}:${(hash % 20) + 1}`;
+  const ref2 = `${ref2Book} ${((hash+5) % 10) + 1}:${((hash+7) % 20) + 1}`;
+
+  const fetchVerseText = async (ref: string) => {
+    try {
+      const res = await fetch(`https://bible-api.com/${encodeURIComponent(ref)}?translation=web`);
+      if (res.ok) {
+        const data = await res.json();
+        return data.text.trim();
+      }
+    } catch (e) {
+      console.error(e);
     }
+    return "A theological parallel that expands upon the core message delivered in this text.";
+  };
+
+  const [text1, text2] = await Promise.all([
+    fetchVerseText(ref1),
+    fetchVerseText(ref2)
+  ]);
+
+  return [
+    { reference: ref1, textSnippet: text1 },
+    { reference: ref2, textSnippet: text2 }
   ];
 }
 

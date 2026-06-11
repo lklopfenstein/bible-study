@@ -29,10 +29,6 @@ export default function Navbar() {
           <BookOpen size={20} />
           <span>Read</span>
         </Link>
-        <Link href="/maps" className={styles.link}>
-          <Map size={20} />
-          <span>Maps</span>
-        </Link>
         <Link href="/profile" className={styles.link}>
           <User size={20} color={user ? 'var(--text-accent)' : 'currentColor'} />
           <span style={{ color: user ? 'var(--text-accent)' : 'inherit' }}>{user ? 'Account' : 'Profile'}</span>
