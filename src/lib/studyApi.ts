@@ -51,20 +51,20 @@ export async function getStrongsData(book: string, chapter: number, verse: numbe
 }
 
 const BOOK_ID_MAPPING: Record<string, string> = {
-  'Genesis': 'GEN', 'Exodus': 'EXO', 'Leviticus': 'LEV', 'Numbers': 'NUM', 'Deuteronomy': 'DEU',
-  'Joshua': 'JOS', 'Judges': 'JDG', 'Ruth': 'RUT', '1 Samuel': '1SA', '2 Samuel': '2SA',
-  '1 Kings': '1KI', '2 Kings': '2KI', '1 Chronicles': '1CH', '2 Chronicles': '2CH', 'Ezra': 'EZR',
-  'Nehemiah': 'NEH', 'Esther': 'EST', 'Job': 'JOB', 'Psalms': 'PSA', 'Proverbs': 'PRO',
-  'Ecclesiastes': 'ECC', 'Song of Solomon': 'SNG', 'Isaiah': 'ISA', 'Jeremiah': 'JER', 'Lamentations': 'LAM',
-  'Ezekiel': 'EZK', 'Daniel': 'DAN', 'Hosea': 'HOS', 'Joel': 'JOL', 'Amos': 'AMO',
-  'Obadiah': 'OBA', 'Jonah': 'JON', 'Micah': 'MIC', 'Nahum': 'NAM', 'Habakkuk': 'HAB',
-  'Zephaniah': 'ZEP', 'Haggai': 'HAG', 'Zechariah': 'ZEC', 'Malachi': 'MAL', 'Matthew': 'MAT',
-  'Mark': 'MRK', 'Luke': 'LUK', 'John': 'JHN', 'Acts': 'ACT', 'Romans': 'ROM',
-  '1 Corinthians': '1CO', '2 Corinthians': '2CO', 'Galatians': 'GAL', 'Ephesians': 'EPH', 'Philippians': 'PHP',
-  'Colossians': 'COL', '1 Thessalonians': '1TH', '2 Thessalonians': '2TH', '1 Timothy': '1TI', '2 Timothy': '2TI',
-  'Titus': 'TIT', 'Philemon': 'PHM', 'Hebrews': 'HEB', 'James': 'JAS', '1 Peter': '1PE',
-  '2 Peter': '2PE', '1 John': '1JN', '2 John': '2JN', '3 John': '3JN', 'Jude': 'JUD',
-  'Revelation': 'REV'
+  'genesis': 'GEN', 'exodus': 'EXO', 'leviticus': 'LEV', 'numbers': 'NUM', 'deuteronomy': 'DEU',
+  'joshua': 'JOS', 'judges': 'JDG', 'ruth': 'RUT', '1 samuel': '1SA', '2 samuel': '2SA',
+  '1 kings': '1KI', '2 kings': '2KI', '1 chronicles': '1CH', '2 chronicles': '2CH', 'ezra': 'EZR',
+  'nehemiah': 'NEH', 'esther': 'EST', 'job': 'JOB', 'psalms': 'PSA', 'proverbs': 'PRO',
+  'ecclesiastes': 'ECC', 'song of solomon': 'SNG', 'isaiah': 'ISA', 'jeremiah': 'JER', 'lamentations': 'LAM',
+  'ezekiel': 'EZK', 'daniel': 'DAN', 'hosea': 'HOS', 'joel': 'JOL', 'amos': 'AMO',
+  'obadiah': 'OBA', 'jonah': 'JON', 'micah': 'MIC', 'nahum': 'NAM', 'habakkuk': 'HAB',
+  'zephaniah': 'ZEP', 'haggai': 'HAG', 'zechariah': 'ZEC', 'malachi': 'MAL', 'matthew': 'MAT',
+  'mark': 'MRK', 'luke': 'LUK', 'john': 'JHN', 'acts': 'ACT', 'romans': 'ROM',
+  '1 corinthians': '1CO', '2 corinthians': '2CO', 'galatians': 'GAL', 'ephesians': 'EPH', 'philippians': 'PHP',
+  'colossians': 'COL', '1 thessalonians': '1TH', '2 thessalonians': '2TH', '1 timothy': '1TI', '2 timothy': '2TI',
+  'titus': 'TIT', 'philemon': 'PHM', 'hebrews': 'HEB', 'james': 'JAS', '1 peter': '1PE',
+  '2 peter': '2PE', '1 john': '1JN', '2 john': '2JN', '3 john': '3JN', 'jude': 'JUD',
+  'revelation': 'REV'
 };
 
 /**
@@ -72,7 +72,7 @@ const BOOK_ID_MAPPING: Record<string, string> = {
  */
 export async function getCommentary(book: string, chapter: number, verse: number, verseText: string): Promise<Commentary[]> {
   try {
-    const bookId = BOOK_ID_MAPPING[book];
+    const bookId = BOOK_ID_MAPPING[book.toLowerCase()];
     if (bookId) {
       const res = await fetch(`https://bible.helloao.org/api/c/matthew-henry/${bookId}/${chapter}.json`);
       if (res.ok) {
@@ -89,7 +89,7 @@ export async function getCommentary(book: string, chapter: number, verse: number
 
         if (matchedEntry && matchedEntry.content && matchedEntry.content.length > 0) {
           // Some contents are very long, we'll join the first couple of paragraphs
-          const text = matchedEntry.content.slice(0, 3).join('\\n\\n');
+          const text = matchedEntry.content.slice(0, 3).join('\n\n');
           return [
             {
               source: 'Matthew Henry Bible Commentary',
@@ -104,10 +104,11 @@ export async function getCommentary(book: string, chapter: number, verse: number
   }
 
   // Fallback if API fails
+  const formattedBook = book.charAt(0).toUpperCase() + book.slice(1);
   return [
     {
       source: 'Matthew Henry Bible Commentary',
-      text: `In ${book} ${chapter}:${verse}, we observe a profound declaration. The passage reminds us that "${verseText.substring(0, Math.min(30, verseText.length))}..." is not merely a historical account, but a spiritual truth applicable to believers.`
+      text: `In ${formattedBook} ${chapter}:${verse}, we observe a profound declaration. The passage reminds us that "${verseText.substring(0, Math.min(30, verseText.length))}..." is not merely a historical account, but a spiritual truth applicable to believers.`
     }
   ];
 }
