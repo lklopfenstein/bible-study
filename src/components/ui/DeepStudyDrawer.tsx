@@ -22,6 +22,16 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse,
   const [commentaries, setCommentaries] = useState<Commentary[]>([]);
   const [crossRefs, setCrossRefs] = useState<CrossReference[]>([]);
 
+  // Lock body scroll when drawer is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
+
   // Fetch data when drawer opens or verse changes
   useEffect(() => {
     if (!isOpen) return;
@@ -54,6 +64,15 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse,
   if (!isOpen) return null;
 
   const reference = `${book.charAt(0).toUpperCase() + book.slice(1)} ${chapter}:${verse}`;
+
+  const getMapQuery = () => {
+    const locations = ['Jerusalem', 'Bethlehem', 'Nazareth', 'Babylon', 'Sinai', 'Rome', 'Corinth', 'Ephesus', 'Galilee', 'Jordan', 'Egypt', 'Damascus', 'Antioch', 'Athens'];
+    const found = locations.find(loc => verseText.includes(loc));
+    if (found) return `${found}`;
+    return `Historical Israel`; // Fallback
+  };
+
+  const mapQuery = getMapQuery();
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -126,7 +145,7 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse,
               {activeTab === 'maps' && (
                 <div className={styles.mapsTab}>
                   <p className={styles.mapsIntro}>
-                    Relevant geographical data for {reference} via <strong>Google Maps</strong>.
+                    Geographical data focusing on <strong>{mapQuery}</strong> via Google Maps.
                   </p>
                   <div className={styles.mapWidget} style={{ padding: 0, overflow: 'hidden' }}>
                     <iframe 
@@ -136,7 +155,7 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse,
                       loading="lazy" 
                       allowFullScreen 
                       referrerPolicy="no-referrer-when-downgrade" 
-                      src={`https://www.google.com/maps?q=Biblical+locations+in+${book}+chapter+${chapter}&output=embed`}
+                      src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
                     ></iframe>
                   </div>
                 </div>

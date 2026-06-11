@@ -5,6 +5,7 @@ import styles from './page.module.css';
 import InteractiveVerse from '@/components/ui/InteractiveVerse';
 import BookSelector from '@/components/ui/BookSelector';
 import SaveReadingState from '@/components/ui/SaveReadingState';
+import { BIBLE_BOOKS } from '@/lib/bibleData';
 
 export default async function ChapterPage({
   params,
@@ -18,23 +19,57 @@ export default async function ChapterPage({
   // Fetch data
   const data = await getChapter(book, chapterNum);
   
-  // Very basic prev/next chapter logic (won't handle book boundaries perfectly without a full index, but works for demo)
-  const prevChapter = chapterNum > 1 ? chapterNum - 1 : 1;
-  const nextChapter = chapterNum + 1;
+  // Advanced prev/next chapter logic bridging books
+  const normalizedBook = book.toLowerCase().replace(/-/g, '').replace(/ /g, '');
+  const bookIndex = BIBLE_BOOKS.findIndex(b => b.name.toLowerCase().replace(/ /g, '') === normalizedBook);
+  const currentBookData = bookIndex >= 0 ? BIBLE_BOOKS[bookIndex] : null;
+
+  let prevLink = '';
+  let nextLink = '';
+
+  if (currentBookData) {
+    if (chapterNum > 1) {
+      prevLink = `/read/${book}/${chapterNum - 1}`;
+    } else if (bookIndex > 0) {
+      const prevBook = BIBLE_BOOKS[bookIndex - 1];
+      const pFormat = prevBook.name.toLowerCase().replace(/ /g, '');
+      prevLink = `/read/${pFormat}/${prevBook.chapters}`;
+    }
+
+    if (chapterNum < currentBookData.chapters) {
+      nextLink = `/read/${book}/${chapterNum + 1}`;
+    } else if (bookIndex < BIBLE_BOOKS.length - 1) {
+      const nextBook = BIBLE_BOOKS[bookIndex + 1];
+      const nFormat = nextBook.name.toLowerCase().replace(/ /g, '');
+      nextLink = `/read/${nFormat}/1`;
+    }
+  }
 
   return (
     <main className={styles.readerContainer}>
       <SaveReadingState book={book} chapter={chapterNum} />
       <div className={styles.controls}>
-        <Link href={`/read/${book}/${prevChapter}`} className={styles.navButton}>
-          <ChevronLeft size={24} />
-        </Link>
+        {prevLink ? (
+          <Link href={prevLink} className={styles.navButton}>
+            <ChevronLeft size={24} />
+          </Link>
+        ) : (
+          <div className={styles.navButton} style={{ opacity: 0.3, cursor: 'default' }}>
+            <ChevronLeft size={24} />
+          </div>
+        )}
         
         <BookSelector currentBook={book} currentChapter={chapterNum} />
         
-        <Link href={`/read/${book}/${nextChapter}`} className={styles.navButton}>
-          <ChevronRight size={24} />
-        </Link>
+        {nextLink ? (
+          <Link href={nextLink} className={styles.navButton}>
+            <ChevronRight size={24} />
+          </Link>
+        ) : (
+          <div className={styles.navButton} style={{ opacity: 0.3, cursor: 'default' }}>
+            <ChevronRight size={24} />
+          </div>
+        )}
       </div>
 
       <article className={styles.scriptureContent}>
