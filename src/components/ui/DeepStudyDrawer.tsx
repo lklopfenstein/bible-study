@@ -152,7 +152,7 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
                         loading="lazy" 
                         allowFullScreen 
                         referrerPolicy="no-referrer-when-downgrade" 
-                        src={`https://www.google.com/maps?q=${geography.title.startsWith('Geography') ? 'Jerusalem, Israel' : geography.title}&output=embed`}
+                        src={`https://www.google.com/maps?q=${encodeURIComponent((geography.title.startsWith('Geography') ? 'Jerusalem' : geography.title) + ', Middle East')}&output=embed`}
                       ></iframe>
                     </div>
                   </div>
@@ -163,8 +163,8 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
                     <div className={styles.mapWidget} style={{ padding: 0, overflow: 'hidden', height: 'auto' }}>
                       <img 
                         src={geography.isNT 
-                          ? 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Roman_Empire_125.svg/1200px-Roman_Empire_125.svg.png' 
-                          : 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Ancient_Near_East_in_the_13th_century_BC.svg/1200px-Ancient_Near_East_in_the_13th_century_BC.svg.png'
+                          ? 'https://upload.wikimedia.org/wikipedia/commons/d/df/Roman_Empire_125.svg' 
+                          : 'https://upload.wikimedia.org/wikipedia/commons/e/ed/Ancient_Levant_routes.png'
                         } 
                         alt="Historical Map"
                         style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}

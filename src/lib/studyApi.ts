@@ -256,7 +256,7 @@ export async function getHistoricalGeography(book: string, verseText: string): P
         }
       }
 
-      if (summaryData) {
+      if (summaryData && summaryData.type !== 'disambiguation') {
         return {
           title: summaryData.title,
           description: summaryData.description || 'Historical Biblical Location',
