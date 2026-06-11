@@ -13,8 +13,11 @@ interface Props {
 }
 
 export default function BookSelector({ currentBook, currentChapter }: Props) {
+  const normalizedCurrentBook = currentBook.toLowerCase().replace(/-/g, '').replace(/ /g, '');
+  const realBookName = BIBLE_BOOKS.find(b => b.name.toLowerCase().replace(/ /g, '') === normalizedCurrentBook)?.name || currentBook;
+
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedBook, setSelectedBook] = useState(currentBook);
+  const [selectedBook, setSelectedBook] = useState(realBookName);
   const [selectedChapter, setSelectedChapter] = useState(currentChapter.toString());
   
   const router = useRouter();
@@ -38,7 +41,7 @@ export default function BookSelector({ currentBook, currentChapter }: Props) {
       <button className={styles.triggerButton} onClick={() => setIsOpen(!isOpen)}>
         <BookOpen size={20} />
         <span className={styles.triggerText}>
-          {currentBook.charAt(0).toUpperCase() + currentBook.slice(1)} {currentChapter}
+          {realBookName} {currentChapter}
         </span>
         <ChevronDown size={20} className={isOpen ? styles.iconOpen : styles.iconClosed} />
       </button>
