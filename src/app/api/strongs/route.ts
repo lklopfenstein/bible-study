@@ -6,20 +6,22 @@ import strongs from 'strongs';
 let isIndexed = false;
 const wordIndex: Record<string, string[]> = {};
 
+const STOP_WORDS = new Set(['the','and','that','this','for','with','unto','upon','which','their','from','they','have','been','shall','will','were','what','when','where','who','whom','whose','there','here','then','than','also','into','about','above','after','again','against','all','any','because','before','could','should','would','down','even','every','good','great','like','many','more','most','much','must','never','only','other','our','out','over','same','some','such','through','under','very','well','your','his','him','her','she','them','these','those']);
+
 function buildReverseIndex() {
   if (isIndexed) return;
   
   for (const key of Object.keys(strongs)) {
     const entry = (strongs as any)[key];
-    const defs = (entry.kjv_def || '') + ' ' + (entry.strongs_def || '');
+    // ONLY index kjv_def so we don't accidentally map words to the long descriptive paragraphs
+    const defs = entry.kjv_def || '';
     
     // Extract pure words
     const words = defs.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/);
     
     for (const w of words) {
-      if (w.length > 3) {
+      if (w.length > 3 && !STOP_WORDS.has(w)) {
         if (!wordIndex[w]) wordIndex[w] = [];
-        // Cap index at 5 matches per word to prevent massive payloads for common words like "that"
         if (!wordIndex[w].includes(key) && wordIndex[w].length < 5) {
           wordIndex[w].push(key);
         }
@@ -39,12 +41,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ definitions: [] });
     }
     
-    const words = verseText.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 3);
+    // Extract significant words from verse text, avoiding stop words
+    const words = verseText.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 3 && !STOP_WORDS.has(w));
     const results: any[] = [];
     const addedKeys = new Set<string>();
 
     for (const word of words) {
-      const matches = wordIndex[word] || [];
+      // Also try matching the base word (e.g. 'believes' -> 'believe')
+      const baseWord = word.endsWith('s') ? word.slice(0, -1) : word;
+      const matches = wordIndex[word] || wordIndex[baseWord] || wordIndex[word + 's'] || [];
+      
       for (const key of matches) {
         // Ensure we match NT words to NT verses, OT words to OT verses
         const isWordNT = key.startsWith('G');
