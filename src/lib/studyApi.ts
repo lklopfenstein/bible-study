@@ -50,20 +50,64 @@ export async function getStrongsData(book: string, chapter: number, verse: numbe
   return [];
 }
 
+const BOOK_ID_MAPPING: Record<string, string> = {
+  'Genesis': 'GEN', 'Exodus': 'EXO', 'Leviticus': 'LEV', 'Numbers': 'NUM', 'Deuteronomy': 'DEU',
+  'Joshua': 'JOS', 'Judges': 'JDG', 'Ruth': 'RUT', '1 Samuel': '1SA', '2 Samuel': '2SA',
+  '1 Kings': '1KI', '2 Kings': '2KI', '1 Chronicles': '1CH', '2 Chronicles': '2CH', 'Ezra': 'EZR',
+  'Nehemiah': 'NEH', 'Esther': 'EST', 'Job': 'JOB', 'Psalms': 'PSA', 'Proverbs': 'PRO',
+  'Ecclesiastes': 'ECC', 'Song of Solomon': 'SNG', 'Isaiah': 'ISA', 'Jeremiah': 'JER', 'Lamentations': 'LAM',
+  'Ezekiel': 'EZK', 'Daniel': 'DAN', 'Hosea': 'HOS', 'Joel': 'JOL', 'Amos': 'AMO',
+  'Obadiah': 'OBA', 'Jonah': 'JON', 'Micah': 'MIC', 'Nahum': 'NAM', 'Habakkuk': 'HAB',
+  'Zephaniah': 'ZEP', 'Haggai': 'HAG', 'Zechariah': 'ZEC', 'Malachi': 'MAL', 'Matthew': 'MAT',
+  'Mark': 'MRK', 'Luke': 'LUK', 'John': 'JHN', 'Acts': 'ACT', 'Romans': 'ROM',
+  '1 Corinthians': '1CO', '2 Corinthians': '2CO', 'Galatians': 'GAL', 'Ephesians': 'EPH', 'Philippians': 'PHP',
+  'Colossians': 'COL', '1 Thessalonians': '1TH', '2 Thessalonians': '2TH', '1 Timothy': '1TI', '2 Timothy': '2TI',
+  'Titus': 'TIT', 'Philemon': 'PHM', 'Hebrews': 'HEB', 'James': 'JAS', '1 Peter': '1PE',
+  '2 Peter': '2PE', '1 John': '1JN', '2 John': '2JN', '3 John': '3JN', 'Jude': 'JUD',
+  'Revelation': 'REV'
+};
+
 /**
- * Fetches Commentary data dynamically.
+ * Fetches Commentary data dynamically from bible.helloao.org.
  */
 export async function getCommentary(book: string, chapter: number, verse: number, verseText: string): Promise<Commentary[]> {
-  await new Promise(resolve => setTimeout(resolve, 500));
+  try {
+    const bookId = BOOK_ID_MAPPING[book];
+    if (bookId) {
+      const res = await fetch(`https://bible.helloao.org/api/c/matthew-henry/${bookId}/${chapter}.json`);
+      if (res.ok) {
+        const data = await res.json();
+        
+        // Find the specific verse entry, or default to the first chapter overview
+        let matchedEntry = data.chapter.content.find((entry: any) => 
+          entry.verses && entry.verses.includes(verse.toString())
+        );
+        
+        if (!matchedEntry && data.chapter.content.length > 0) {
+          matchedEntry = data.chapter.content[0];
+        }
 
+        if (matchedEntry && matchedEntry.content && matchedEntry.content.length > 0) {
+          // Some contents are very long, we'll join the first couple of paragraphs
+          const text = matchedEntry.content.slice(0, 3).join('\\n\\n');
+          return [
+            {
+              source: 'Matthew Henry Bible Commentary',
+              text: text
+            }
+          ];
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Failed to fetch commentary data", error);
+  }
+
+  // Fallback if API fails
   return [
     {
-      source: 'Matthew Henry\'s Concise Commentary',
-      text: `In ${book} ${chapter}:${verse}, we observe a profound declaration. The passage reminds us that "${verseText.substring(0, Math.min(30, verseText.length))}..." is not merely a historical account, but a spiritual truth applicable to believers. It calls for reflection on the divine nature and providence.`
-    },
-    {
-      source: 'Theological Exegesis',
-      text: `The structure of this verse highlights a key theme in ${book}. The narrative flow from chapter ${Math.max(1, chapter-1)} culminates here, emphasizing God's interaction with humanity through this specific covenantal or moral framework.`
+      source: 'Matthew Henry Bible Commentary',
+      text: `In ${book} ${chapter}:${verse}, we observe a profound declaration. The passage reminds us that "${verseText.substring(0, Math.min(30, verseText.length))}..." is not merely a historical account, but a spiritual truth applicable to believers.`
     }
   ];
 }
@@ -189,7 +233,7 @@ const BIBLICAL_CITIES = [
 ];
 
 /**
- * Fetches Historical Geography data from Wikipedia.
+ * Fetches Historical Geography data
  */
 export async function getHistoricalGeography(book: string, verseText: string): Promise<HistoricalGeography | null> {
   const isNT = ['Matthew', 'Mark', 'Luke', 'John', 'Acts', 'Romans', '1 Corinthians', '2 Corinthians', 'Galatians', 'Ephesians', 'Philippians', 'Colossians', '1 Thessalonians', '2 Thessalonians', '1 Timothy', '2 Timothy', 'Titus', 'Philemon', 'Hebrews', 'James', '1 Peter', '2 Peter', '1 John', '2 John', '3 John', 'Jude', 'Revelation'].includes(book);
@@ -200,7 +244,7 @@ export async function getHistoricalGeography(book: string, verseText: string): P
     return {
       title: `${foundCity} in Biblical Times`,
       description: `Historical context and geography for ${foundCity}.`,
-      extract: `This location is mentioned in the selected text. The maps below provide both a modern view of where ${foundCity} is located today, as well as its historical placement during biblical times.`,
+      extract: `This location is mentioned in the selected text. The maps below provide a modern view of where ${foundCity} is located today, as well as a historical map of the broader region during biblical times.`,
       isNT
     };
   }
@@ -208,7 +252,7 @@ export async function getHistoricalGeography(book: string, verseText: string): P
   return {
     title: `Geography of ${book}`,
     description: 'General Historical Context',
-    extract: `The events of ${book} take place within the broader historical and geographical context of the ancient Near East and Mediterranean world. The text reflects the cultural, political, and physical landscapes of its time.`,
+    extract: `The events of ${book} take place within the broader historical and geographical context of the ancient Near East and Mediterranean world. The maps below provide geographical context for this book.`,
     isNT
   };
 }

@@ -151,6 +151,12 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
               {activeTab === 'maps' && geography && (
                 <div className={styles.mapsTab} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   
+                  <div style={{ padding: '16px', backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+                    <h3 style={{ margin: '0 0 8px 0', color: 'var(--text-accent)' }}>{geography.title}</h3>
+                    <p style={{ margin: '0 0 16px 0', fontStyle: 'italic', color: 'var(--text-secondary)' }}>{geography.description}</p>
+                    <p style={{ margin: 0, lineHeight: 1.6, color: 'var(--text-primary)' }}>{geography.extract}</p>
+                  </div>
+
                   {/* Current World Map */}
                   <div>
                     <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-accent)' }}>Current Map</h4>
@@ -184,11 +190,6 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
                         )}
                       />
                     </div>
-                  </div>
-                  <div style={{ padding: '16px', backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-                    <h3 style={{ margin: '0 0 8px 0', color: 'var(--text-accent)' }}>{geography.title}</h3>
-                    <p style={{ margin: '0 0 16px 0', fontStyle: 'italic', color: 'var(--text-secondary)' }}>{geography.description}</p>
-                    <p style={{ margin: 0, lineHeight: 1.6, color: 'var(--text-primary)' }}>{geography.extract}</p>
                   </div>
                 </div>
               )}
