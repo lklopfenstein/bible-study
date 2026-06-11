@@ -16,7 +16,7 @@ export interface CrossReference {
   textSnippet: string;
 }
 
-// Pseudo-random generator seeded by verse text
+// Pseudo-random generator seeded by string
 function hashString(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -26,57 +26,92 @@ function hashString(str: string): number {
   return Math.abs(hash);
 }
 
+const REAL_STRONGS_DICTIONARY: Record<string, StrongsDefinition> = {
+  // Greek (NT)
+  love: { word: 'love', strongsNumber: 'G26', originalLanguage: 'ἀγάπη', transliteration: 'agapē', definition: 'Brotherly love, affection, good will, love, benevolence. The highest form of love, especially characterized by God\'s love for humanity.' },
+  loved: { word: 'loved', strongsNumber: 'G25', originalLanguage: 'ἀγαπάω', transliteration: 'agapaō', definition: 'To love (in a social or moral sense); to welcome, to entertain, to be fond of, to love dearly.' },
+  world: { word: 'world', strongsNumber: 'G2889', originalLanguage: 'κόσμος', transliteration: 'kosmos', definition: 'An apt and harmonious arrangement or constitution, order, government. The inhabitants of the earth; the universe.' },
+  believe: { word: 'believe', strongsNumber: 'G4100', originalLanguage: 'πιστεύω', transliteration: 'pisteuō', definition: 'To think to be true, to be persuaded of, to credit, place confidence in. To entrust a thing to one.' },
+  believes: { word: 'believes', strongsNumber: 'G4100', originalLanguage: 'πιστεύω', transliteration: 'pisteuō', definition: 'To think to be true, to be persuaded of, to credit, place confidence in.' },
+  faith: { word: 'faith', strongsNumber: 'G4102', originalLanguage: 'πίστις', transliteration: 'pistis', definition: 'Conviction of the truth of anything, belief; in the NT of a conviction or belief respecting man\'s relationship to God and divine things.' },
+  grace: { word: 'grace', strongsNumber: 'G5485', originalLanguage: 'χάρις', transliteration: 'charis', definition: 'Grace, that which affords joy, pleasure, delight, sweetness, charm, loveliness. The merciful kindness by which God exerts his holy influence upon souls.' },
+  peace: { word: 'peace', strongsNumber: 'G1515', originalLanguage: 'εἰρήνη', transliteration: 'eirēnē', definition: 'A state of national tranquillity; exemption from the rage and havoc of war. Peace between individuals, harmony, concord. The tranquil state of a soul assured of its salvation through Christ.' },
+  spirit: { word: 'spirit', strongsNumber: 'G4151', originalLanguage: 'πνεῦμα', transliteration: 'pneuma', definition: 'A movement of air (a gentle blast). The spirit, i.e. the vital principle by which the body is animated. The Holy Spirit.' },
+  holy: { word: 'holy', strongsNumber: 'G40', originalLanguage: 'ἅγιος', transliteration: 'hagios', definition: 'Reverend, worthy of veneration. Set apart for God, to be, as it were, exclusively his. Sacred.' },
+  word: { word: 'word', strongsNumber: 'G3056', originalLanguage: 'λόγος', transliteration: 'logos', definition: 'A word, uttered by a living voice. The sayings of God. The Divine Word (Christ).' },
+  flesh: { word: 'flesh', strongsNumber: 'G4561', originalLanguage: 'σάρξ', transliteration: 'sarx', definition: 'Flesh (the soft substance of the living body). The animal nature with its frailties and passions.' },
+  truth: { word: 'truth', strongsNumber: 'G225', originalLanguage: 'ἀλήθεια', transliteration: 'alētheia', definition: 'Truth, objectively; the reality lying at the basis of an appearance; the manifested, veritable essence of a matter.' },
+  life: { word: 'life', strongsNumber: 'G2222', originalLanguage: 'ζωή', transliteration: 'zōē', definition: 'Life, the state of one who is possessed of vitality or is animate. Of the absolute fullness of life, both essential and ethical, which belongs to God.' },
+  light: { word: 'light', strongsNumber: 'G5457', originalLanguage: 'φῶς', transliteration: 'phōs', definition: 'Light, the light emitted by a lamp, a heavenly light. Spiritual truth and its knowledge.' },
+  darkness: { word: 'darkness', strongsNumber: 'G4653', originalLanguage: 'σκοτία', transliteration: 'skotia', definition: 'Darkness. Metaphorically, of ignorance respecting divine things and human duties, and the accompanying ungodliness and immorality.' },
+  sin: { word: 'sin', strongsNumber: 'G266', originalLanguage: 'ἁμαρτία', transliteration: 'hamartia', definition: 'To be without a share in, to miss the mark, to err, be mistaken. That which is done wrong, sin, an offence, a violation of the divine law in thought or in act.' },
+  blood: { word: 'blood', strongsNumber: 'G129', originalLanguage: 'αἷμα', transliteration: 'haima', definition: 'Blood; blood as shed, i.e., of violence, death. The atoning blood of Christ.' },
+  covenant: { word: 'covenant', strongsNumber: 'G1242', originalLanguage: 'διαθήκη', transliteration: 'diathēkē', definition: 'A disposition, arrangement, of any sort, which one wishes to be valid. A testament or will. The new covenant established by Christ.' },
+  heaven: { word: 'heaven', strongsNumber: 'G3772', originalLanguage: 'οὐρανός', transliteration: 'ouranos', definition: 'The vaulted expanse of the sky. The region above the sidereal heavens, the seat of order of things eternal and consummately perfect where God dwells.' },
+  earth: { word: 'earth', strongsNumber: 'G1093', originalLanguage: 'γῆ', transliteration: 'gē', definition: 'Arable land, the ground, the earth as a standing place. The inhabited earth.' },
+  temple: { word: 'temple', strongsNumber: 'G3485', originalLanguage: 'ναός', transliteration: 'naos', definition: 'A temple, a shrine, that part of the temple where God himself resides. Used metaphorically of Christians.' },
+  sacrifice: { word: 'sacrifice', strongsNumber: 'G2378', originalLanguage: 'θυσία', transliteration: 'thusia', definition: 'A sacrifice, victim. An offering. Used of the sacrifice of Christ, and metaphorically of spiritual sacrifices.' },
+  way: { word: 'way', strongsNumber: 'G3598', originalLanguage: 'ὁδός', transliteration: 'hodos', definition: 'A way, a travelled way, road. A course of conduct, a manner of thinking, feeling, deciding.' },
+  death: { word: 'death', strongsNumber: 'G2288', originalLanguage: 'θάνατος', transliteration: 'thanatos', definition: 'The death of the body. That separation (whether natural or violent) of the soul and the body by which the life on earth is ended. Spiritual death.' },
+  joy: { word: 'joy', strongsNumber: 'G5479', originalLanguage: 'χαρά', transliteration: 'chara', definition: 'Joy, gladness. The cause or occasion of joy.' },
+  glory: { word: 'glory', strongsNumber: 'G1391', originalLanguage: 'δόξα', transliteration: 'doxa', definition: 'Opinion, judgment, view. Splendor, brightness. Majesty, the kingly majesty which belongs to God as supreme ruler.' },
+  power: { word: 'power', strongsNumber: 'G1411', originalLanguage: 'δύναμις', transliteration: 'dunamis', definition: 'Strength, power, ability. Inherent power, power residing in a thing by virtue of its nature.' },
+  wisdom: { word: 'wisdom', strongsNumber: 'G4678', originalLanguage: 'σοφία', transliteration: 'sophia', definition: 'Wisdom, broad and full of intelligence; used of the knowledge of very diverse matters. Supreme intelligence, such as belongs to God.' },
+  son: { word: 'son', strongsNumber: 'G5207', originalLanguage: 'υἱός', transliteration: 'huios', definition: 'A son. Used to describe the relationship of Jesus to God the Father.' },
+  father: { word: 'father', strongsNumber: 'G3962', originalLanguage: 'πατήρ', transliteration: 'patēr', definition: 'Generator or male ancestor. God is called the Father of all, as the creator and preserver.' },
+  righteous: { word: 'righteous', strongsNumber: 'G1342', originalLanguage: 'δίκαιος', transliteration: 'dikaios', definition: 'Righteous, observing divine laws. In a narrower sense, rendering to each his due.' },
+  salvation: { word: 'salvation', strongsNumber: 'G4991', originalLanguage: 'σωτηρία', transliteration: 'sōtēria', definition: 'Deliverance, preservation, safety, salvation. Deliverance from the molestation of enemies.' },
+  mercy: { word: 'mercy', strongsNumber: 'G1656', originalLanguage: 'ἔλεος', transliteration: 'eleos', definition: 'Mercy: kindness or good will towards the miserable and the afflicted, joined with a desire to help them.' },
+  forgive: { word: 'forgive', strongsNumber: 'G863', originalLanguage: 'ἀφίημι', transliteration: 'aphiēmi', definition: 'To send away. To remit a debt, forgive an offense or sin.' },
+
+  // Hebrew (OT)
+  god: { word: 'god', strongsNumber: 'H430', originalLanguage: 'אֱלֹהִים', transliteration: 'elohim', definition: 'Plural of H433; gods in the ordinary sense; but specifically used (in the plural thus, especially with the article) of the supreme God; occasionally applied by way of deference to magistrates; and sometimes as a superlative.' },
+  lord: { word: 'lord', strongsNumber: 'H3068', originalLanguage: 'יְהֹוָה', transliteration: 'Yehovah', definition: 'Jehovah = "the existing One". The proper name of the one true God.' },
+  creation: { word: 'creation', strongsNumber: 'H1254', originalLanguage: 'בָּרָא', transliteration: 'bara', definition: 'To create, shape, form. Always used with God as the subject.' },
+  beginning: { word: 'beginning', strongsNumber: 'H7225', originalLanguage: 'רֵאשִׁית', transliteration: 'reshith', definition: 'First, beginning, best, chief. The first in time or space.' },
+  covenant_ot: { word: 'covenant', strongsNumber: 'H1285', originalLanguage: 'בְּרִית', transliteration: 'berith', definition: 'Covenant, alliance, pledge. Between men; between God and man.' },
+  peace_ot: { word: 'peace', strongsNumber: 'H7965', originalLanguage: 'שָׁלוֹם', transliteration: 'shalom', definition: 'Completeness, soundness, welfare, peace. Peace, quiet, tranquillity, contentment.' },
+  mercy_ot: { word: 'mercy', strongsNumber: 'H2617', originalLanguage: 'חֶסֶד', transliteration: 'chesed', definition: 'Goodness, kindness, faithfulness. Frequently used of God\'s lovingkindness towards His people.' },
+  spirit_ot: { word: 'spirit', strongsNumber: 'H7307', originalLanguage: 'רוּחַ', transliteration: 'ruach', definition: 'Wind, breath, mind, spirit. The Spirit of God, the third person of the triune God, the Holy Spirit, coequal, coeternal with the Father and the Son.' },
+  holy_ot: { word: 'holy', strongsNumber: 'H6918', originalLanguage: 'קָדוֹשׁ', transliteration: 'qadosh', definition: 'Sacred, holy, Holy One, saint, set apart.' },
+  word_ot: { word: 'word', strongsNumber: 'H1697', originalLanguage: 'דָּבָר', transliteration: 'dabar', definition: 'Speech, word, speaking, thing. The word of God.' }
+};
+
 /**
- * Fetches Strong's dictionary data.
- * This actively tokenizes the verse text to provide study-able words for EVERY verse.
+ * Fetches Strong's dictionary data using a real theological keyword dictionary.
  */
 export async function getStrongsData(book: string, chapter: number, verse: number, verseText: string): Promise<StrongsDefinition[]> {
-  await new Promise(resolve => setTimeout(resolve, 600));
+  await new Promise(resolve => setTimeout(resolve, 300));
 
   const isNT = ['Matthew', 'Mark', 'Luke', 'John', 'Acts', 'Romans', '1 Corinthians', '2 Corinthians', 'Galatians', 'Ephesians', 'Philippians', 'Colossians', '1 Thessalonians', '2 Thessalonians', '1 Timothy', '2 Timothy', 'Titus', 'Philemon', 'Hebrews', 'James', '1 Peter', '2 Peter', '1 John', '2 John', '3 John', 'Jude', 'Revelation'].includes(book);
 
-  if (isNT && book === 'John' && chapter === 3 && verse === 16) {
-    return [
-      { word: 'loved', strongsNumber: 'G25', originalLanguage: 'ἀγαπάω', transliteration: 'agapaō', definition: 'To love (in a social or moral sense); to welcome, to entertain, to be fond of, to love dearly.' },
-      { word: 'world', strongsNumber: 'G2889', originalLanguage: 'κόσμος', transliteration: 'kosmos', definition: 'An apt and harmonious arrangement or constitution, order, government. The inhabitants of the earth.' },
-      { word: 'believes', strongsNumber: 'G4100', originalLanguage: 'πιστεύω', transliteration: 'pisteuō', definition: 'To think to be true, to be persuaded of, to credit, place confidence in.' }
-    ];
-  }
+  // Normalize verse text
+  const words = verseText.toLowerCase().replace(/[.,;:"?!()]/g, '').split(' ');
+  const foundDefinitions: StrongsDefinition[] = [];
+  const foundKeys = new Set<string>();
 
-  // Active algorithmic parsing for ALL OTHER verses
-  // Strip punctuation and filter for significant words (> 4 chars)
-  const words = verseText.replace(/[.,;:"?!()]/g, '').split(' ').filter(w => w.length > 4);
-  
-  // Pick up to 3 words consistently based on the verse's hash
-  const hash = hashString(verseText);
-  const selectedWords = [];
-  
-  if (words.length > 0) selectedWords.push(words[hash % words.length]);
-  if (words.length > 1) selectedWords.push(words[(hash + 1) % words.length]);
-  if (words.length > 2) selectedWords.push(words[(hash + 2) % words.length]);
-
-  return selectedWords.map(word => {
-    const wordHash = hashString(word);
-    const strongsNum = wordHash % 8000;
+  // Check each word against our theological dictionary
+  for (const word of words) {
+    let keyToLookup = word;
     
-    // Generate pseudo-Greek/Hebrew letters based on the hash
-    const greekLetters = ['α', 'β', 'γ', 'δ', 'ε', 'ζ', 'η', 'θ', 'ι', 'κ', 'λ', 'μ', 'ν', 'ξ', 'ο', 'π', 'ρ', 'σ', 'τ', 'υ', 'φ', 'χ', 'ψ', 'ω'];
-    const hebrewLetters = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט', 'י', 'כ', 'ל', 'מ', 'נ', 'ס', 'ע', 'פ', 'צ', 'ק', 'ר', 'ש', 'ת'];
-    
-    let original = '';
-    const letters = isNT ? greekLetters : hebrewLetters;
-    for(let i=0; i<4; i++) {
-      original += letters[(wordHash + i) % letters.length];
+    // Disambiguate some OT vs NT terms if they share English roots in our dictionary structure
+    if (!isNT && REAL_STRONGS_DICTIONARY[`${word}_ot`]) {
+      keyToLookup = `${word}_ot`;
     }
 
-    return {
-      word: word.toLowerCase(),
-      strongsNumber: isNT ? `G${strongsNum}` : `H${strongsNum}`,
-      originalLanguage: original,
-      transliteration: word.toLowerCase() + (isNT ? 'os' : 'ah'),
-      definition: `Theological implications of '${word.toLowerCase()}'. Used to denote the primary action or subject. ${isNT ? 'Found extensively in the Pauline epistles.' : 'Commonly found in the Torah and Prophets.'}`
-    };
-  });
+    if (REAL_STRONGS_DICTIONARY[keyToLookup] && !foundKeys.has(keyToLookup)) {
+      // Ensure we don't accidentally pull NT Greek words for OT verses or vice versa
+      const def = REAL_STRONGS_DICTIONARY[keyToLookup];
+      const isWordNT = def.strongsNumber.startsWith('G');
+      
+      if (isNT === isWordNT) {
+        foundDefinitions.push(def);
+        foundKeys.add(keyToLookup);
+      }
+    }
+  }
+
+  return foundDefinitions;
 }
 
 /**

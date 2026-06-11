@@ -101,7 +101,7 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
             <div className={styles.fade}>
               {activeTab === 'strongs' && (
                 <div className={styles.strongsList}>
-                  {strongs.map((s, idx) => (
+                  {strongs.length > 0 ? strongs.map((s, idx) => (
                     <div key={idx} className={styles.strongsCard}>
                       <div className={styles.strongsHeader}>
                         <span className={styles.strongsWord}>"{s.word}"</span>
@@ -113,7 +113,14 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
                       </div>
                       <p className={styles.strongsDef}>{s.definition}</p>
                     </div>
-                  ))}
+                  )) : (
+                    <div className={styles.emptyState}>
+                      <h4 style={{ color: 'var(--text-accent)', marginBottom: '8px' }}>No Theological Keywords</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                        No major theological keywords (e.g., Agape, Logos, Shalom, Pneuma) were found in this specific verse selection. Try selecting a verse with foundational thematic concepts.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
