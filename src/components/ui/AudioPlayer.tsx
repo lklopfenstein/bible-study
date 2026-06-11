@@ -62,48 +62,61 @@ export default function AudioPlayer({ text, nextLink }: Props) {
     };
   }, []);
 
+  const [chunks, setChunks] = useState<string[]>([]);
+  const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
+
   useEffect(() => {
     // Stop any ongoing speech when component unmounts or text changes
     window.speechSynthesis.cancel();
     setIsPlaying(false);
     setIsPaused(false);
+    setCurrentChunkIndex(0);
+    
+    // Chunk the text by sentences to prevent browser SpeechSynthesis API from silently failing on long texts
+    const cleanText = text.replace(/[\r\n]+/g, ' ');
+    // Split by punctuation followed by space
+    const textChunks = cleanText.match(/[^.!?]+[.!?]+(?:\s+|$)/g) || [cleanText];
+    setChunks(textChunks.map(c => c.trim()).filter(c => c.length > 0));
 
     return () => {
       window.speechSynthesis.cancel();
     };
   }, [text]);
 
-  const initUtterance = () => {
-    // Strip out unnecessary punctuation/newlines for smoother reading
-    const cleanText = text.replace(/[\r\n]+/g, ' ');
-    const utterance = new SpeechSynthesisUtterance(cleanText);
+  const playFromIndex = (startIndex: number, currentSpeed: number, currentVoiceURI: string) => {
+    window.speechSynthesis.cancel();
     
-    // Use selected voice
-    const voiceToUse = voices.find(v => v.voiceURI === selectedVoiceURI);
-    if (voiceToUse) {
-      utterance.voice = voiceToUse;
-    }
+    const voiceToUse = voices.find(v => v.voiceURI === currentVoiceURI);
 
-    utterance.rate = speed;
-    utterance.pitch = 1;
+    for (let i = startIndex; i < chunks.length; i++) {
+      const utterance = new SpeechSynthesisUtterance(chunks[i]);
+      if (voiceToUse) utterance.voice = voiceToUse;
+      utterance.rate = currentSpeed;
+      utterance.pitch = 1;
 
-    utterance.onend = () => {
-      setIsPlaying(false);
-      setIsPaused(false);
-      // Auto-advance to next chapter if available
-      if (nextLink) {
-        router.push(nextLink);
+      utterance.onstart = () => {
+        setCurrentChunkIndex(i);
+      };
+
+      if (i === chunks.length - 1) {
+        utterance.onend = () => {
+          if (!isPaused && isPlaying) {
+            setIsPlaying(false);
+            setIsPaused(false);
+            setCurrentChunkIndex(0);
+            if (nextLink) router.push(nextLink);
+          }
+        };
       }
-    };
 
-    utterance.onerror = (e) => {
-      console.error('SpeechSynthesis error', e);
-      setIsPlaying(false);
-      setIsPaused(false);
-    };
+      utterance.onerror = (e) => {
+        console.error('SpeechSynthesis error', e);
+        setIsPlaying(false);
+        setIsPaused(false);
+      };
 
-    utteranceRef.current = utterance;
-    return utterance;
+      window.speechSynthesis.speak(utterance);
+    }
   };
 
   const togglePlay = () => {
@@ -114,10 +127,10 @@ export default function AudioPlayer({ text, nextLink }: Props) {
       window.speechSynthesis.resume();
       setIsPaused(false);
     } else {
-      const utterance = initUtterance();
-      window.speechSynthesis.speak(utterance);
       setIsPlaying(true);
       setIsPaused(false);
+      setCurrentChunkIndex(0);
+      playFromIndex(0, speed, selectedVoiceURI);
     }
   };
 
@@ -125,21 +138,15 @@ export default function AudioPlayer({ text, nextLink }: Props) {
     window.speechSynthesis.cancel();
     setIsPlaying(false);
     setIsPaused(false);
+    setCurrentChunkIndex(0);
   };
 
   const cycleSpeed = () => {
     let newSpeed = speed === 1 ? 1.25 : speed === 1.25 ? 1.5 : speed === 1.5 ? 2 : 1;
     setSpeed(newSpeed);
     
-    if (isPlaying) {
-      // Must restart utterance to apply new rate in most browsers
-      window.speechSynthesis.cancel();
-      setTimeout(() => {
-        const utterance = initUtterance();
-        utterance.rate = newSpeed;
-        window.speechSynthesis.speak(utterance);
-        setIsPaused(false);
-      }, 50);
+    if (isPlaying && !isPaused) {
+      playFromIndex(currentChunkIndex, newSpeed, selectedVoiceURI);
     }
   };
 
@@ -148,14 +155,8 @@ export default function AudioPlayer({ text, nextLink }: Props) {
     setSelectedVoiceURI(newURI);
     localStorage.setItem('bible-audio-voice', newURI);
     
-    if (isPlaying) {
-      window.speechSynthesis.cancel();
-      setTimeout(() => {
-        const utterance = initUtterance();
-        utterance.voice = voices.find(v => v.voiceURI === newURI) || null;
-        window.speechSynthesis.speak(utterance);
-        setIsPaused(false);
-      }, 50);
+    if (isPlaying && !isPaused) {
+      playFromIndex(currentChunkIndex, speed, newURI);
     }
   };
 
