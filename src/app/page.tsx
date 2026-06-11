@@ -18,7 +18,7 @@ export default function Home() {
           <span className={styles.reference}>Jeremiah 29:11</span>
         </div>
 
-        <Link href="/read" className={styles.button}>
+        <Link href="/read/genesis/1" className={styles.button}>
           Begin Reading
         </Link>
       </section>
