@@ -2,7 +2,7 @@ import { getChapter } from '@/lib/api';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './page.module.css';
-import InteractiveVerse from '@/components/ui/InteractiveVerse';
+import ScriptureContent from '@/components/ui/ScriptureContent';
 import BookSelector from '@/components/ui/BookSelector';
 import SaveReadingState from '@/components/ui/SaveReadingState';
 import { BIBLE_BOOKS } from '@/lib/bibleData';
@@ -73,9 +73,7 @@ export default async function ChapterPage({
       </div>
 
       <article className={styles.scriptureContent}>
-        {data.verses.map((verse) => (
-          <InteractiveVerse key={verse.verse} verse={verse} book={book} />
-        ))}
+        <ScriptureContent verses={data.verses} book={book} />
       </article>
       
       <div className={styles.translationNote}>

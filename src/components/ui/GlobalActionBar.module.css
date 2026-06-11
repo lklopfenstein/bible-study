@@ -1,0 +1,133 @@
+.actionBarWrapper {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-md);
+  pointer-events: none; /* Let clicks pass through outside the bar */
+}
+
+.actionBar {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  gap: var(--spacing-md);
+  pointer-events: auto; /* Enable clicks on the bar */
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.selectionCount {
+  font-weight: 600;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.9rem;
+  border: 1px solid var(--border-color);
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--border-color);
+}
+
+.actionGroup {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.actionButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-speed) ease;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  gap: 4px;
+}
+
+.actionButton:hover {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.highlightPalette {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.colorBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.colorBtn:hover {
+  transform: scale(1.1);
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
+}
+
+.closeButton:hover {
+  background-color: var(--bg-highlight);
+  color: var(--text-primary);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .actionBarWrapper {
+    padding: 0;
+  }
+  
+  .actionBar {
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    width: 100%;
+    justify-content: space-between;
+    padding: var(--spacing-md);
+  }
+  
+  .actionButton span {
+    display: none;
+  }
+}
