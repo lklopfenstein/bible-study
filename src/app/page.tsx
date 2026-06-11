@@ -1,5 +1,6 @@
 import styles from './page.module.css';
 import Link from 'next/link';
+import StartReadingButton from '@/components/ui/StartReadingButton';
 
 export default function Home() {
   return (
@@ -18,9 +19,7 @@ export default function Home() {
           <span className={styles.reference}>Jeremiah 29:11</span>
         </div>
 
-        <Link href="/read/genesis/1" className={styles.button}>
-          Begin Reading
-        </Link>
+        <StartReadingButton />
       </section>
     </main>
   );

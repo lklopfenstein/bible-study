@@ -1,8 +1,20 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { BookOpen, Map, BookMarked, User } from 'lucide-react';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
+  const [readHref, setReadHref] = useState('/read/genesis/1');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('bible-last-read');
+    if (saved) {
+      setReadHref(saved);
+    }
+  }, []);
+
   return (
     <nav className={styles.navbar}>
       <div className={styles.logo}>
@@ -11,7 +23,7 @@ export default function Navbar() {
         </Link>
       </div>
       <div className={styles.links}>
-        <Link href="/read/genesis/1" className={styles.link}>
+        <Link href={readHref} className={styles.link}>
           <BookOpen size={20} />
           <span>Read</span>
         </Link>

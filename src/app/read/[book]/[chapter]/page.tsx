@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './page.module.css';
 import InteractiveVerse from '@/components/ui/InteractiveVerse';
 import BookSelector from '@/components/ui/BookSelector';
+import SaveReadingState from '@/components/ui/SaveReadingState';
 
 export default async function ChapterPage({
   params,
@@ -23,6 +24,7 @@ export default async function ChapterPage({
 
   return (
     <main className={styles.readerContainer}>
+      <SaveReadingState book={book} chapter={chapterNum} />
       <div className={styles.controls}>
         <Link href={`/read/${book}/${prevChapter}`} className={styles.navButton}>
           <ChevronLeft size={24} />

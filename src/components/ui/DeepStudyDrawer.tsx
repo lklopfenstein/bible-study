@@ -11,9 +11,10 @@ interface Props {
   book: string;
   chapter: number;
   verse: number;
+  verseText: string;
 }
 
-export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse }: Props) {
+export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse, verseText }: Props) {
   const [activeTab, setActiveTab] = useState<'strongs' | 'commentary' | 'crossref' | 'maps'>('strongs');
   
   const [loading, setLoading] = useState(false);
@@ -30,9 +31,9 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse 
       setLoading(true);
       try {
         const [sData, cData, crData] = await Promise.all([
-          getStrongsData(book, chapter, verse),
-          getCommentary(book, chapter, verse),
-          getCrossReferences(book, chapter, verse)
+          getStrongsData(book, chapter, verse, verseText),
+          getCommentary(book, chapter, verse, verseText),
+          getCrossReferences(book, chapter, verse, verseText)
         ]);
         if (isMounted) {
           setStrongs(sData);
@@ -125,10 +126,18 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse 
               {activeTab === 'maps' && (
                 <div className={styles.mapsTab}>
                   <p className={styles.mapsIntro}>
-                    Relevant geographical data for {reference} from <strong>OldMapsOnline</strong>.
+                    Relevant geographical data for {reference} via <strong>Google Maps</strong>.
                   </p>
-                  <div className={styles.mapWidget}>
-                    🗺️ Interactive Map Region for Context
+                  <div className={styles.mapWidget} style={{ padding: 0, overflow: 'hidden' }}>
+                    <iframe 
+                      width="100%" 
+                      height="100%" 
+                      style={{ border: 0, borderRadius: 'var(--radius-md)' }} 
+                      loading="lazy" 
+                      allowFullScreen 
+                      referrerPolicy="no-referrer-when-downgrade" 
+                      src={`https://www.google.com/maps?q=Biblical+locations+in+${book}+chapter+${chapter}&output=embed`}
+                    ></iframe>
                   </div>
                 </div>
               )}

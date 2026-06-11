@@ -149,6 +149,7 @@ export default function InteractiveVerse({ verse, book }: Props) {
         book={book} 
         chapter={verse.chapter} 
         verse={verse.verse} 
+        verseText={verse.text}
       />
     </>
   );
