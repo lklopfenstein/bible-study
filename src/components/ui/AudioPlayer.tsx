@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Square, FastForward } from 'lucide-react';
+import { Play, Pause, Square, FastForward, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import styles from './AudioPlayer.module.css';
 
@@ -15,7 +15,45 @@ export default function AudioPlayer({ text, nextLink }: Props) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
+  const [showSettings, setShowSettings] = useState(false);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoiceURI, setSelectedVoiceURI] = useState<string>('');
+  
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Load voices and preferences
+  useEffect(() => {
+    const loadVoices = () => {
+      const availableVoices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
+      setVoices(availableVoices);
+      
+      const savedURI = localStorage.getItem('bible-audio-voice');
+      if (savedURI && availableVoices.some(v => v.voiceURI === savedURI)) {
+        setSelectedVoiceURI(savedURI);
+      } else if (availableVoices.length > 0) {
+        // Fallback to premium/default
+        const premium = availableVoices.find(v => v.name.includes('Premium') || v.name.includes('Samantha') || v.name.includes('Alex'));
+        setSelectedVoiceURI(premium ? premium.voiceURI : availableVoices[0].voiceURI);
+      }
+    };
+
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+
+    // Click outside to close settings
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowSettings(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     // Stop any ongoing speech when component unmounts or text changes
@@ -33,14 +71,10 @@ export default function AudioPlayer({ text, nextLink }: Props) {
     const cleanText = text.replace(/[\r\n]+/g, ' ');
     const utterance = new SpeechSynthesisUtterance(cleanText);
     
-    // Attempt to find a natural english voice
-    const voices = window.speechSynthesis.getVoices();
-    const premiumVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Premium') || v.name.includes('Samantha') || v.name.includes('Alex')));
-    if (premiumVoice) {
-      utterance.voice = premiumVoice;
-    } else {
-      const defaultEn = voices.find(v => v.lang.startsWith('en'));
-      if (defaultEn) utterance.voice = defaultEn;
+    // Use selected voice
+    const voiceToUse = voices.find(v => v.voiceURI === selectedVoiceURI);
+    if (voiceToUse) {
+      utterance.voice = voiceToUse;
     }
 
     utterance.rate = speed;
@@ -102,8 +136,24 @@ export default function AudioPlayer({ text, nextLink }: Props) {
     }
   };
 
+  const handleVoiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newURI = e.target.value;
+    setSelectedVoiceURI(newURI);
+    localStorage.setItem('bible-audio-voice', newURI);
+    
+    if (isPlaying) {
+      window.speechSynthesis.cancel();
+      setTimeout(() => {
+        const utterance = initUtterance();
+        utterance.voice = voices.find(v => v.voiceURI === newURI) || null;
+        window.speechSynthesis.speak(utterance);
+        setIsPaused(false);
+      }, 50);
+    }
+  };
+
   return (
-    <div className={styles.audioPlayer}>
+    <div className={styles.audioPlayer} ref={containerRef}>
       <button className={styles.btn} onClick={togglePlay} aria-label={isPlaying && !isPaused ? "Pause" : "Play"}>
         {isPlaying && !isPaused ? <Pause size={20} /> : <Play size={20} />}
       </button>
@@ -118,6 +168,29 @@ export default function AudioPlayer({ text, nextLink }: Props) {
         <FastForward size={16} />
         <span>{speed}x</span>
       </button>
+
+      <div className={styles.settingsWrapper}>
+        <button className={styles.btn} onClick={() => setShowSettings(!showSettings)} aria-label="Settings">
+          <Settings size={18} />
+        </button>
+        
+        {showSettings && (
+          <div className={styles.settingsDropdown}>
+            <label className={styles.settingsLabel}>Reader Voice</label>
+            <select 
+              value={selectedVoiceURI} 
+              onChange={handleVoiceChange}
+              className={styles.voiceSelect}
+            >
+              {voices.map(v => (
+                <option key={v.voiceURI} value={v.voiceURI}>
+                  {v.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
