@@ -150,7 +150,38 @@ const THEMATIC_MAPPING: Record<string, string[]> = {
   salvation: ['Acts 4:12', 'Romans 10:10', 'Ephesians 2:8'],
   darkness: ['John 1:5', '1 Peter 2:9', 'Ephesians 5:8'],
   mercy: ['Lamentations 3:22', 'Titus 3:5', 'Hebrews 4:16'],
-  forgive: ['Ephesians 4:32', 'Colossians 3:13', 'Matthew 6:14']
+  forgive: ['Ephesians 4:32', 'Colossians 3:13', 'Matthew 6:14'],
+  paul: ['Acts 9:15', 'Romans 1:1', '1 Corinthians 1:1', 'Galatians 1:1'],
+  timothy: ['1 Timothy 1:2', '2 Timothy 1:2', 'Philippians 2:19'],
+  servant: ['Isaiah 42:1', 'Matthew 20:26', 'Philippians 2:7'],
+  servants: ['Romans 6:22', 'Revelation 22:3', '1 Peter 2:16'],
+  saints: ['Romans 1:7', 'Ephesians 1:1', 'Colossians 1:2', 'Revelation 14:12'],
+  church: ['Matthew 16:18', 'Ephesians 5:25', 'Colossians 1:18'],
+  law: ['Psalm 119:97', 'Romans 7:12', 'Galatians 3:24'],
+  prophet: ['Deuteronomy 18:15', 'Acts 3:22', 'Hebrews 1:1']
+};
+
+const BOOK_CROSS_REFS: Record<string, string[]> = {
+  'Genesis': ['John 1:1', 'Hebrews 11:3', 'Psalm 33:6'],
+  'Exodus': ['Hebrews 11:27', 'Acts 7:36', 'Psalm 105:26'],
+  'Leviticus': ['Hebrews 9:22', '1 Peter 1:16', 'Hebrews 10:1'],
+  'Psalms': ['Ephesians 5:19', 'Colossians 3:16', 'James 5:13'],
+  'Proverbs': ['James 1:5', 'Colossians 2:3', '1 Corinthians 1:30'],
+  'Isaiah': ['Matthew 1:23', '1 Peter 2:24', 'Acts 8:32'],
+  'Matthew': ['Mark 1:1', 'Luke 1:1', 'John 1:1'],
+  'Mark': ['Matthew 1:1', 'Luke 1:1', 'John 1:1'],
+  'Luke': ['Matthew 1:1', 'Mark 1:1', 'John 1:1'],
+  'John': ['Matthew 1:1', 'Mark 1:1', 'Luke 1:1'],
+  'Acts': ['Luke 24:49', 'John 14:26', 'Romans 15:19'],
+  'Romans': ['Galatians 3:11', 'Hebrews 10:38', 'Habakkuk 2:4'],
+  '1 Corinthians': ['Romans 1:1', 'Ephesians 1:1', 'Colossians 1:1'],
+  '2 Corinthians': ['Romans 1:1', 'Galatians 1:1', 'Ephesians 1:1'],
+  'Galatians': ['Romans 3:28', 'Ephesians 2:8', 'James 2:24'],
+  'Ephesians': ['Colossians 1:1', 'Philippians 1:1', 'Romans 12:5'],
+  'Philippians': ['Ephesians 1:1', 'Colossians 1:1', '1 Thessalonians 1:1'],
+  'Colossians': ['Ephesians 1:1', 'Philippians 1:1', 'Philemon 1:1'],
+  'Hebrews': ['Leviticus 16:15', 'Romans 5:1', 'Galatians 3:24'],
+  'Revelation': ['Daniel 7:13', 'Ezekiel 1:26', 'Zechariah 12:10']
 };
 
 export async function getCrossReferences(book: string, chapter: number, verse: number, verseText: string): Promise<CrossReference[]> {
@@ -167,11 +198,10 @@ export async function getCrossReferences(book: string, chapter: number, verse: n
     // Shuffle and pick 2 unique
     selectedRefs = [...new Set(selectedRefs)].sort(() => 0.5 - Math.random()).slice(0, 2);
   } else {
-    // Fallback: use hash to pick pseudo-random from the pool to guarantee we return something
-    const hash = hashString(verseText);
-    const allRefs = Object.values(THEMATIC_MAPPING).flat();
-    selectedRefs.push(allRefs[hash % allRefs.length]);
-    selectedRefs.push(allRefs[(hash + 1) % allRefs.length]);
+    // Fallback: Pick from the book's specific cross-references, or general fallback
+    const bookRefs = BOOK_CROSS_REFS[book] || ['John 3:16', 'Romans 8:28', 'Proverbs 3:5'];
+    const shuffled = [...bookRefs].sort(() => 0.5 - Math.random()).slice(0, 2);
+    selectedRefs = shuffled.length >= 2 ? shuffled : [...shuffled, 'Psalm 119:105'];
   }
 
   const fetchVerseText = async (ref: string) => {
