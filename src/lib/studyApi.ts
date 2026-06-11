@@ -136,6 +136,7 @@ export interface HistoricalGeography {
   description: string;
   extract: string;
   thumbnailUrl?: string;
+  gallery?: Array<{ url: string; caption: string }>;
 }
 
 const BIBLICAL_CITIES = [
@@ -154,19 +155,46 @@ const BIBLICAL_CITIES = [
  * Fetches Historical Geography data from Wikipedia.
  */
 export async function getHistoricalGeography(book: string, verseText: string): Promise<HistoricalGeography | null> {
-  // Find the first biblical city mentioned in the verse
   const foundCity = BIBLICAL_CITIES.find(city => verseText.includes(city));
 
   if (foundCity) {
     try {
-      const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(foundCity)}`);
-      if (res.ok) {
-        const data = await res.json();
+      const summaryRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(foundCity)}`);
+      let summaryData = null;
+      if (summaryRes.ok) summaryData = await summaryRes.json();
+
+      const mediaRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/media-list/${encodeURIComponent(foundCity)}`);
+      let gallery: Array<{url: string, caption: string}> = [];
+      
+      if (mediaRes.ok) {
+        const mediaData = await mediaRes.json();
+        if (mediaData.items) {
+          // Filter out SVGs and icons, grab the highest res src
+          const validImages = mediaData.items.filter((item: any) => 
+            item.type === 'image' && 
+            item.srcset && 
+            item.srcset.length > 0 &&
+            !item.title.toLowerCase().includes('.svg')
+          ).slice(0, 8); // Grab up to 8 images
+
+          gallery = validImages.map((item: any) => {
+            // Pick the highest resolution image available in the srcset
+            const bestSrc = item.srcset[item.srcset.length - 1].src;
+            return {
+              url: bestSrc.startsWith('//') ? `https:${bestSrc}` : bestSrc,
+              caption: item.title.replace('File:', '').replace(/_/g, ' ').replace(/\.[a-zA-Z0-9]+$/, '')
+            };
+          });
+        }
+      }
+
+      if (summaryData) {
         return {
-          title: data.title,
-          description: data.description || 'Historical Biblical Location',
-          extract: data.extract,
-          thumbnailUrl: data.thumbnail?.source
+          title: summaryData.title,
+          description: summaryData.description || 'Historical Biblical Location',
+          extract: summaryData.extract,
+          thumbnailUrl: summaryData.thumbnail?.source,
+          gallery: gallery.length > 0 ? gallery : undefined
         };
       }
     } catch (e) {
@@ -174,7 +202,6 @@ export async function getHistoricalGeography(book: string, verseText: string): P
     }
   }
 
-  // Fallback geography if no specific city is found
   return {
     title: `Geography of ${book}`,
     description: 'General Historical Context',
