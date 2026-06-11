@@ -4,14 +4,8 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronDown, BookOpen } from 'lucide-react';
 import { useClickOutside } from '@/hooks/useClickOutside';
+import { BIBLE_BOOKS } from '@/lib/bibleData';
 import styles from './BookSelector.module.css';
-
-// A sample list of books for demonstration. 
-const books = [
-  'Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy', 
-  'Psalms', 'Proverbs', 'Isaiah', 
-  'Matthew', 'Mark', 'Luke', 'John', 'Acts', 'Romans', 'Revelation'
-];
 
 interface Props {
   currentBook: string;
@@ -30,11 +24,14 @@ export default function BookSelector({ currentBook, currentChapter }: Props) {
 
   const handleNavigate = () => {
     setIsOpen(false);
-    router.push(`/read/${selectedBook.toLowerCase()}/${selectedChapter}`);
+    // Replace spaces with hyphens or handle appropriately for routing
+    // e.g., '1 Corinthians' -> '1-corinthians' depending on how the API expects it
+    const formattedBook = selectedBook.toLowerCase().replace(/ /g, '');
+    router.push(`/read/${formattedBook}/${selectedChapter}`);
   };
 
-  // Utility to generate chapters 1-150 for demo purposes (max Psalms)
-  const chapters = Array.from({ length: selectedBook === 'Psalms' ? 150 : 50 }, (_, i) => i + 1);
+  const selectedBookData = BIBLE_BOOKS.find(b => b.name === selectedBook) || BIBLE_BOOKS[0];
+  const chapters = Array.from({ length: selectedBookData.chapters }, (_, i) => i + 1);
 
   return (
     <div className={styles.container} ref={dropdownRef}>
@@ -60,8 +57,8 @@ export default function BookSelector({ currentBook, currentChapter }: Props) {
                   setSelectedChapter('1');
                 }}
               >
-                {books.map(b => (
-                  <option key={b} value={b}>{b}</option>
+                {BIBLE_BOOKS.map(b => (
+                  <option key={b.name} value={b.name}>{b.name}</option>
                 ))}
               </select>
             </div>
