@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { BookOpen, Map, BookMarked, User, Search, Settings } from 'lucide-react';
 import styles from './Navbar.module.css';
 import { useUser } from '@/hooks/useUser';
 
 export default function Navbar() {
+  const router = useRouter();
   const [readHref, setReadHref] = useState('/read/genesis/1');
   const { user, loading, supabase } = useUser();
 
@@ -52,10 +54,18 @@ export default function Navbar() {
           <Search size={20} />
           <span className="hidden sm:inline">Search</span>
         </Link>
-        <Link href={readHref} className={styles.link}>
+        <button 
+          onClick={(e) => {
+            e.preventDefault();
+            const freshHref = localStorage.getItem('bible-last-read') || readHref;
+            router.push(freshHref);
+          }} 
+          className={styles.link}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', padding: 0 }}
+        >
           <BookOpen size={20} />
           <span>Read</span>
-        </Link>
+        </button>
         <Link href="/settings" className={styles.link}>
           <Settings size={20} />
           <span className="hidden sm:inline">Offline</span>
