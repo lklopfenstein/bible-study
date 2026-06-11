@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import styles from './DeepStudyDrawer.module.css';
-import { getStrongsData, getCommentary, getCrossReferences, StrongsDefinition, Commentary, CrossReference } from '@/lib/studyApi';
+import { getStrongsData, getCommentary, getCrossReferences, getHistoricalGeography, StrongsDefinition, Commentary, CrossReference, HistoricalGeography } from '@/lib/studyApi';
 
 interface Props {
   isOpen: boolean;
@@ -21,6 +21,7 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse,
   const [strongs, setStrongs] = useState<StrongsDefinition[]>([]);
   const [commentaries, setCommentaries] = useState<Commentary[]>([]);
   const [crossRefs, setCrossRefs] = useState<CrossReference[]>([]);
+  const [geography, setGeography] = useState<HistoricalGeography | null>(null);
 
   // Lock body scroll when drawer is open
   useEffect(() => {
@@ -40,15 +41,17 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse,
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [sData, cData, crData] = await Promise.all([
+        const [sData, cData, crData, gData] = await Promise.all([
           getStrongsData(book, chapter, verse, verseText),
           getCommentary(book, chapter, verse, verseText),
-          getCrossReferences(book, chapter, verse, verseText)
+          getCrossReferences(book, chapter, verse, verseText),
+          getHistoricalGeography(book, verseText)
         ]);
         if (isMounted) {
           setStrongs(sData);
           setCommentaries(cData);
           setCrossRefs(crData);
+          setGeography(gData);
         }
       } catch (error) {
         console.error("Failed to fetch deep study data");
@@ -64,15 +67,6 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse,
   if (!isOpen) return null;
 
   const reference = `${book.charAt(0).toUpperCase() + book.slice(1)} ${chapter}:${verse}`;
-
-  const getMapQuery = () => {
-    const locations = ['Jerusalem', 'Bethlehem', 'Nazareth', 'Babylon', 'Sinai', 'Rome', 'Corinth', 'Ephesus', 'Galilee', 'Jordan', 'Egypt', 'Damascus', 'Antioch', 'Athens'];
-    const found = locations.find(loc => verseText.includes(loc));
-    if (found) return `${found}`;
-    return `Historical Israel`; // Fallback
-  };
-
-  const mapQuery = getMapQuery();
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -142,21 +136,26 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse,
                 </div>
               )}
 
-              {activeTab === 'maps' && (
-                <div className={styles.mapsTab}>
-                  <p className={styles.mapsIntro}>
-                    Geographical data focusing on <strong>{mapQuery}</strong> via Google Maps.
-                  </p>
-                  <div className={styles.mapWidget} style={{ padding: 0, overflow: 'hidden' }}>
-                    <iframe 
-                      width="100%" 
-                      height="100%" 
-                      style={{ border: 0, borderRadius: 'var(--radius-md)' }} 
-                      loading="lazy" 
-                      allowFullScreen 
-                      referrerPolicy="no-referrer-when-downgrade" 
-                      src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
-                    ></iframe>
+              {activeTab === 'maps' && geography && (
+                <div className={styles.mapsTab} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ padding: '16px', backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+                    <h3 style={{ margin: '0 0 8px 0', color: 'var(--text-accent)' }}>{geography.title}</h3>
+                    <p style={{ margin: '0 0 16px 0', fontStyle: 'italic', color: 'var(--text-secondary)' }}>{geography.description}</p>
+                    
+                    {geography.thumbnailUrl && (
+                      <div style={{ marginBottom: '16px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border-color)', height: '200px' }}>
+                        <img 
+                          src={geography.thumbnailUrl} 
+                          alt={geography.title} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      </div>
+                    )}
+                    
+                    <p style={{ margin: 0, lineHeight: 1.6, color: 'var(--text-primary)' }}>{geography.extract}</p>
+                    <p style={{ margin: '16px 0 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'right' }}>
+                      <em>Source: Wikimedia/Wikipedia REST API</em>
+                    </p>
                   </div>
                 </div>
               )}

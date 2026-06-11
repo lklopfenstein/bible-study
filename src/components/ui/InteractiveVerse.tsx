@@ -24,6 +24,7 @@ export default function InteractiveVerse({ verse, book }: Props) {
   const [highlightColor, setHighlightColor] = useState<string>('transparent');
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [hasNote, setHasNote] = useState(false);
+  const [noteContent, setNoteContent] = useState('');
 
   const { user, supabase } = useUser();
 
@@ -44,8 +45,11 @@ export default function InteractiveVerse({ verse, book }: Props) {
       if (globalNotes) {
         try {
           const parsed = JSON.parse(globalNotes);
-          const exists = parsed.some((n: any) => n.reference.toLowerCase() === referenceString.toLowerCase());
-          setHasNote(exists);
+          const noteObj = parsed.find((n: any) => n.reference.toLowerCase() === referenceString.toLowerCase());
+          if (noteObj) {
+            setHasNote(true);
+            setNoteContent(noteObj.text || '');
+          }
         } catch (e) {}
       }
 
@@ -67,7 +71,10 @@ export default function InteractiveVerse({ verse, book }: Props) {
           if (bookmark) setIsBookmarked(true);
 
           const note = data.find(d => d.type === 'note');
-          if (note) setHasNote(true);
+          if (note) {
+            setHasNote(true);
+            setNoteContent(note.content || '');
+          }
         }
       }
     };
@@ -116,27 +123,50 @@ export default function InteractiveVerse({ verse, book }: Props) {
     }
   };
 
-  const handleAddNote = async () => {
-    const globalNotesStr = localStorage.getItem('study-bible-notes');
-    const notes = globalNotesStr ? JSON.parse(globalNotesStr) : [];
+  const handleAddNote = () => {
+    setIsMenuOpen(false);
+    setStudyContentType('note');
+    setIsStudyContentOpen(true);
+  };
+
+  const handleSaveNote = async (text: string) => {
+    setNoteContent(text);
     
-    notes.push({
-      id: Date.now().toString(),
-      reference: referenceString,
-      text: "Inline note added from reader view.",
-      date: new Date().toISOString().split('T')[0]
-    });
+    // Save locally
+    const globalNotesStr = localStorage.getItem('study-bible-notes');
+    let notes = globalNotesStr ? JSON.parse(globalNotesStr) : [];
+    
+    // Remove existing note for this verse if it exists
+    notes = notes.filter((n: any) => n.reference.toLowerCase() !== referenceString.toLowerCase());
+    
+    if (text.trim() !== '') {
+      notes.push({
+        id: Date.now().toString(),
+        reference: referenceString,
+        text: text,
+        date: new Date().toISOString().split('T')[0]
+      });
+      setHasNote(true);
+    } else {
+      setHasNote(false);
+    }
     
     localStorage.setItem('study-bible-notes', JSON.stringify(notes));
-    setHasNote(true);
 
+    // Save to Cloud
     if (user) {
-      await supabase.from('user_data').insert({
-        user_id: user.id, book, chapter: verse.chapter, verse: verse.verse, type: 'note', content: "Inline note added from reader view."
-      });
+      if (text.trim() !== '') {
+        // Upsert by deleting first
+        await supabase.from('user_data').delete()
+          .match({ user_id: user.id, book, chapter: verse.chapter, verse: verse.verse, type: 'note' });
+        await supabase.from('user_data').insert({
+          user_id: user.id, book, chapter: verse.chapter, verse: verse.verse, type: 'note', content: text
+        });
+      } else {
+        await supabase.from('user_data').delete()
+          .match({ user_id: user.id, book, chapter: verse.chapter, verse: verse.verse, type: 'note' });
+      }
     }
-
-    alert('Note added! (Check the Notes page)');
   };
 
   const toggleStudyContent = (type: 'note' | 'map', e: React.MouseEvent) => {
@@ -192,8 +222,9 @@ export default function InteractiveVerse({ verse, book }: Props) {
           <InlineStudyContent 
             type={studyContentType}
             title={`${referenceString} ${studyContentType === 'note' ? 'Notes' : 'Map'}`}
-            content={studyContentType === 'note' ? "These are your personal reflections and study notes for this specific verse, loaded dynamically from localStorage." : "Historical region associated with this verse."}
+            initialContent={studyContentType === 'note' ? noteContent : "Historical region associated with this verse."}
             onClose={() => setIsStudyContentOpen(false)}
+            onSaveNote={studyContentType === 'note' ? handleSaveNote : undefined}
           />
         </span>
       )}

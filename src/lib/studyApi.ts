@@ -120,3 +120,54 @@ export async function getCrossReferences(book: string, chapter: number, verse: n
     }
   ];
 }
+
+export interface HistoricalGeography {
+  title: string;
+  description: string;
+  extract: string;
+  thumbnailUrl?: string;
+}
+
+const BIBLICAL_CITIES = [
+  'Jerusalem', 'Bethlehem', 'Babylon', 'Nazareth', 'Capernaum', 'Jericho',
+  'Damascus', 'Antioch', 'Ephesus', 'Corinth', 'Rome', 'Athens', 'Philippi',
+  'Thessalonica', 'Nineveh', 'Sodom', 'Gomorrah', 'Hebron', 'Bethel', 'Shechem',
+  'Samaria', 'Caesarea', 'Joppa', 'Tyre', 'Sidon', 'Tarsus', 'Cyprus', 'Crete',
+  'Patmos', 'Sinai', 'Gaza', 'Beersheba', 'Gilgal', 'Shiloh', 'Dan',
+  'Gibeon', 'Megiddo', 'Hazor', 'Lachish', 'Gezer', 'Arad', 'En Gedi', 'Qumran',
+  'Masada', 'Petra', 'Edom', 'Moab', 'Ammon', 'Gilead', 'Bashan', 'Galilee',
+  'Judea', 'Idumea', 'Decapolis', 'Perea', 'Nabatea', 'Egypt', 'Assyria',
+  'Persia', 'Media', 'Elam', 'Ur', 'Haran', 'Canaan'
+];
+
+/**
+ * Fetches Historical Geography data from Wikipedia.
+ */
+export async function getHistoricalGeography(book: string, verseText: string): Promise<HistoricalGeography | null> {
+  // Find the first biblical city mentioned in the verse
+  const foundCity = BIBLICAL_CITIES.find(city => verseText.includes(city));
+
+  if (foundCity) {
+    try {
+      const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(foundCity)}`);
+      if (res.ok) {
+        const data = await res.json();
+        return {
+          title: data.title,
+          description: data.description || 'Historical Biblical Location',
+          extract: data.extract,
+          thumbnailUrl: data.thumbnail?.source
+        };
+      }
+    } catch (e) {
+      console.error('Failed to fetch Wikipedia data', e);
+    }
+  }
+
+  // Fallback geography if no specific city is found
+  return {
+    title: `Geography of ${book}`,
+    description: 'General Historical Context',
+    extract: `The events of ${book} take place within the broader historical and geographical context of the ancient Near East and Mediterranean world. The text reflects the cultural, political, and physical landscapes of its time.`,
+  };
+}
