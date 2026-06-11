@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import styles from './DeepStudyDrawer.module.css';
 import { getStrongsData, getCommentary, getCrossReferences, getHistoricalGeography, StrongsDefinition, Commentary, CrossReference, HistoricalGeography } from '@/lib/studyApi';
+import { BIBLE_BOOKS } from '@/lib/bibleData';
 
 interface Props {
   isOpen: boolean;
@@ -69,7 +70,8 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
 
   if (!isOpen) return null;
 
-  const reference = `${book.charAt(0).toUpperCase() + book.slice(1)} ${chapter}:${verseRef}`;
+  const realBookName = BIBLE_BOOKS.find(b => b.name.toLowerCase().replace(/ /g, '') === book.toLowerCase().replace(/ /g, ''))?.name || book;
+  const reference = `${realBookName} ${chapter}:${verseRef}`;
 
   return (
     <div className={styles.overlay} onClick={onClose}>
