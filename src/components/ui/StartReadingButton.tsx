@@ -7,15 +7,17 @@ import { useUser } from '@/hooks/useUser';
 
 export default function StartReadingButton() {
   const [href, setHref] = useState('/read/genesis/1');
-  const [isLoading, setIsLoading] = useState(true);
-  const { user, supabase } = useUser();
+  const [isSyncing, setIsSyncing] = useState(true);
+  const { user, loading, supabase } = useUser();
 
   useEffect(() => {
-    // First, set from local storage as fallback
+    // Wait until auth state is determined before doing cloud sync
+    if (loading) return;
+
+    // Set local fallback first so we have *something* immediately
     const saved = localStorage.getItem('bible-last-read');
     if (saved) setHref(saved);
     
-    // Then attempt cloud sync if user is logged in
     const fetchCloudState = async () => {
       if (user) {
         const { data, error } = await supabase
@@ -23,23 +25,25 @@ export default function StartReadingButton() {
           .select('content')
           .eq('user_id', user.id)
           .eq('type', 'last_read')
-          .single();
+          .limit(1);
           
-        if (data && !error && data.content) {
-          setHref(data.content);
-          // Also sync back to local
-          localStorage.setItem('bible-last-read', data.content);
+        if (data && data.length > 0 && !error && data[0].content) {
+          setHref(data[0].content);
+          // Sync back down to local storage
+          localStorage.setItem('bible-last-read', data[0].content);
+        } else if (error) {
+          console.error("StartReadingButton cloud sync error:", error);
         }
       }
-      setIsLoading(false);
+      setIsSyncing(false);
     };
 
     fetchCloudState();
-  }, [user, supabase]);
+  }, [user, loading, supabase]);
 
   return (
-    <Link href={href} className={styles.button} style={{ opacity: isLoading ? 0.7 : 1 }}>
-      {isLoading ? 'Loading...' : 'Begin Reading'}
+    <Link href={href} className={styles.button} style={{ opacity: isSyncing || loading ? 0.7 : 1 }}>
+      {isSyncing || loading ? 'Syncing...' : 'Begin Reading'}
     </Link>
   );
 }

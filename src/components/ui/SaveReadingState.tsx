@@ -13,10 +13,10 @@ export default function SaveReadingState({ book, chapter }: { book: string, chap
     if (user) {
       // Sync to cloud
       (async () => {
-        await supabase.from('user_data').delete()
+        const { error: delError } = await supabase.from('user_data').delete()
           .match({ user_id: user.id, type: 'last_read' });
           
-        await supabase.from('user_data').insert({
+        const { error: insError } = await supabase.from('user_data').insert({
           user_id: user.id,
           book: book,
           chapter: chapter,
@@ -24,6 +24,10 @@ export default function SaveReadingState({ book, chapter }: { book: string, chap
           type: 'last_read',
           content: url
         });
+        
+        if (delError || insError) {
+          console.error("SaveReadingState sync error:", delError, insError);
+        }
       })();
     }
   }, [book, chapter, user, supabase]);
