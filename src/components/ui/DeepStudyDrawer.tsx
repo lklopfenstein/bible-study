@@ -107,7 +107,7 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
                     <div key={idx} className={styles.strongsCard}>
                       <div className={styles.strongsHeader}>
                         <span className={styles.strongsWord}>"{s.word}"</span>
-                        <span className={styles.strongsBadge}>{s.strongsNumber}</span>
+                        <span className={styles.strongsBadge} title="Strong's Concordance Number">Strong's {s.strongsNumber}</span>
                       </div>
                       <div className={styles.strongsOriginal}>
                         <span className={styles.greekHebrew}>{s.originalLanguage}</span>

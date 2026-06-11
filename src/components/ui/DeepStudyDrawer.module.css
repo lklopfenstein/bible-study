@@ -191,6 +191,9 @@
   color: var(--text-accent);
   margin-bottom: var(--spacing-sm);
   font-size: 1.05rem;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .commentaryText, .crossRefText {
