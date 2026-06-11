@@ -22,6 +22,7 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
   const [commentaries, setCommentaries] = useState<Commentary[]>([]);
   const [crossRefs, setCrossRefs] = useState<CrossReference[]>([]);
   const [geography, setGeography] = useState<HistoricalGeography | null>(null);
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
 
   // Lock body scroll when drawer is open
   useEffect(() => {
@@ -167,7 +168,11 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
                           : 'https://upload.wikimedia.org/wikipedia/commons/e/ed/Ancient_Levant_routes.png'
                         } 
                         alt="Historical Map"
-                        style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}
+                        style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', cursor: 'zoom-in' }}
+                        onClick={() => setEnlargedImage(geography.isNT 
+                          ? 'https://upload.wikimedia.org/wikipedia/commons/d/df/Roman_Empire_125.svg' 
+                          : 'https://upload.wikimedia.org/wikipedia/commons/e/ed/Ancient_Levant_routes.png'
+                        )}
                       />
                     </div>
                   </div>
@@ -180,7 +185,13 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
                         {geography.gallery.map((img, idx) => (
                           <div key={idx} className={styles.galleryItem}>
                             <div className={styles.galleryImageWrapper}>
-                              <img src={img.url} alt={img.caption} className={styles.galleryImage} />
+                              <img 
+                                src={img.url} 
+                                alt={img.caption} 
+                                className={styles.galleryImage} 
+                                style={{ cursor: 'zoom-in' }}
+                                onClick={() => setEnlargedImage(img.url)}
+                              />
                             </div>
                             <div className={styles.galleryCaption} title={img.caption}>
                               {img.caption}
@@ -200,7 +211,8 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
                         <img 
                           src={geography.thumbnailUrl} 
                           alt={geography.title} 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }}
+                          onClick={() => setEnlargedImage(geography.thumbnailUrl!)}
                         />
                       </div>
                     )}
@@ -216,6 +228,54 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
           )}
         </div>
       </div>
+
+      {/* Full-screen Image Lightbox */}
+      {enlargedImage && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            zIndex: 100000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'zoom-out',
+            padding: '24px'
+          }}
+          onClick={() => setEnlargedImage(null)}
+        >
+          <button 
+            style={{
+              position: 'absolute',
+              top: '24px',
+              right: '24px',
+              background: 'none',
+              border: 'none',
+              color: 'white',
+              cursor: 'pointer',
+              padding: '8px',
+            }}
+            onClick={(e) => { e.stopPropagation(); setEnlargedImage(null); }}
+          >
+            <X size={32} />
+          </button>
+          <img 
+            src={enlargedImage} 
+            alt="Enlarged view" 
+            style={{ 
+              maxWidth: '100%', 
+              maxHeight: '100%', 
+              objectFit: 'contain',
+              borderRadius: '8px'
+            }} 
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
