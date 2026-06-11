@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 import Navbar from '@/components/layout/Navbar';
+import Script from 'next/script';
 
 export default function RootLayout({
   children,
@@ -22,6 +23,21 @@ export default function RootLayout({
       <body className={`${inter.variable} ${lora.variable}`}>
         <Navbar />
         {children}
+        
+        {/* BibleRefLink Integration */}
+        <Script 
+          src="https://www.bibleref.com/tools/biblereflink.js" 
+          strategy="lazyOnload"
+        />
+        <Script id="biblereflink-init" strategy="lazyOnload">
+          {`
+            window.addEventListener('load', function() {
+              if (typeof BibleRefLink !== 'undefined') {
+                BibleRefLink.init({ siteKey: 'public-demo' }); // Replace with actual siteKey if required
+              }
+            });
+          `}
+        </Script>
       </body>
     </html>
   );

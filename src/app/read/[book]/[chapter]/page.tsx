@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './page.module.css';
 import InteractiveVerse from '@/components/ui/InteractiveVerse';
+import BookSelector from '@/components/ui/BookSelector';
 
 export default async function ChapterPage({
   params,
@@ -27,7 +28,7 @@ export default async function ChapterPage({
           <ChevronLeft size={24} />
         </Link>
         
-        <h1 className={styles.bookTitle}>{data.reference}</h1>
+        <BookSelector currentBook={book} currentChapter={chapterNum} />
         
         <Link href={`/read/${book}/${nextChapter}`} className={styles.navButton}>
           <ChevronRight size={24} />
@@ -36,7 +37,7 @@ export default async function ChapterPage({
 
       <article className={styles.scriptureContent}>
         {data.verses.map((verse) => (
-          <InteractiveVerse key={verse.verse} verse={verse} />
+          <InteractiveVerse key={verse.verse} verse={verse} book={book} />
         ))}
       </article>
       

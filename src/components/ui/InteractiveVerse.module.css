@@ -1,5 +1,18 @@
 .verseWrapper {
   display: inline;
+  position: relative;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-speed) ease;
+  padding: 0.1em 0;
+}
+
+.verseWrapper:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme='dark'] .verseWrapper:hover {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .verseNumber {
@@ -11,69 +24,42 @@
   font-weight: 600;
 }
 
-.highlightWord {
-  display: inline-block;
-  cursor: pointer;
-  background-color: var(--bg-highlight);
-  border-radius: var(--radius-sm);
-  padding: 0 0.2em;
+.verseText {
+  color: inherit;
+}
+
+.bookmarkIcon {
   color: var(--text-accent);
-  position: relative;
-  transition: background-color var(--transition-speed) ease;
-}
-
-.highlightWord:hover {
-  background-color: var(--text-primary);
-  color: var(--bg-primary);
-}
-
-.popover {
   position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 280px;
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-md);
-  box-shadow: var(--shadow-lg);
-  z-index: 50;
-  margin-top: var(--spacing-sm);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 0.9rem;
-  line-height: 1.5;
-  text-align: left;
-  cursor: default;
-  /* Simple fade-in animation without Framer Motion for now */
-  animation: fadeIn 0.2s ease-out;
+  left: -15px;
+  top: 5px;
 }
 
-.popoverHeader {
-  display: flex;
-  justify-content: space-between;
+.indicators {
+  display: inline-flex;
   align-items: center;
-  margin-bottom: var(--spacing-sm);
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 1px solid var(--border-color);
+  gap: 4px;
+  margin-left: 6px;
+  margin-right: 6px;
+  vertical-align: middle;
 }
 
-.popoverHeader strong {
-  color: var(--text-accent);
-}
-
-.popoverHeader button {
+.indicatorIcon {
   color: var(--text-secondary);
-  font-size: 1.1rem;
-  padding: 0.2rem;
+  background-color: var(--bg-secondary);
+  border-radius: 50%;
+  padding: 2px;
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
 }
 
-.popoverHeader button:hover {
+.indicatorIcon:hover {
   color: var(--text-primary);
+  background-color: var(--bg-highlight);
+  transform: scale(1.1);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translate(-50%, -10px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+.inlineContentWrapper {
+  display: block;
+  width: 100%;
 }
