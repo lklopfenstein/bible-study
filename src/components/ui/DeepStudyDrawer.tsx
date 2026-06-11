@@ -139,6 +139,24 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verse,
               {activeTab === 'maps' && geography && (
                 <div className={styles.mapsTab} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   
+                  {/* Interactive Zoomable Map (Only if specific city found) */}
+                  {!geography.title.startsWith('Geography of') && (
+                    <div>
+                      <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-accent)' }}>Interactive Map</h4>
+                      <div className={styles.mapWidget} style={{ padding: 0, overflow: 'hidden' }}>
+                        <iframe 
+                          width="100%" 
+                          height="100%" 
+                          style={{ border: 0, borderRadius: 'var(--radius-md)' }} 
+                          loading="lazy" 
+                          allowFullScreen 
+                          referrerPolicy="no-referrer-when-downgrade" 
+                          src={`https://www.google.com/maps?q=${geography.title}, Middle East&output=embed`}
+                        ></iframe>
+                      </div>
+                    </div>
+                  )}
+                  
                   {/* Image Gallery */}
                   {geography.gallery && geography.gallery.length > 0 && (
                     <div>

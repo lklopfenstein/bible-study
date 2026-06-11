@@ -97,15 +97,67 @@ export async function getCommentary(book: string, chapter: number, verse: number
   ];
 }
 
-export async function getCrossReferences(book: string, chapter: number, verse: number, verseText: string): Promise<CrossReference[]> {
-  const hash = hashString(verseText);
-  const relatedBooks = ['Genesis', 'Psalms', 'Isaiah', 'John', 'Romans', 'Revelation', 'Proverbs', 'Exodus'];
-  
-  const ref1Book = relatedBooks[hash % relatedBooks.length];
-  const ref2Book = relatedBooks[(hash + 1) % relatedBooks.length];
+const THEMATIC_MAPPING: Record<string, string[]> = {
+  love: ['1 John 4:8', '1 Corinthians 13:4', 'John 13:34'],
+  light: ['John 8:12', 'Matthew 5:14', 'Psalm 119:105'],
+  world: ['John 15:19', '1 John 2:15', 'Romans 12:2'],
+  believe: ['Romans 10:9', 'Hebrews 11:6', 'Acts 16:31'],
+  faith: ['Hebrews 11:1', 'Ephesians 2:8', 'James 2:17'],
+  grace: ['Ephesians 2:8', 'Romans 6:14', '2 Corinthians 12:9'],
+  peace: ['Philippians 4:7', 'John 14:27', 'Isaiah 26:3'],
+  hope: ['Jeremiah 29:11', 'Romans 15:13', 'Hebrews 6:19'],
+  spirit: ['Galatians 5:22', 'Romans 8:14', '1 Corinthians 6:19'],
+  flesh: ['Galatians 5:16', 'Romans 8:5', 'Matthew 26:41'],
+  sin: ['Romans 3:23', 'Romans 6:23', '1 John 1:9'],
+  blood: ['Hebrews 9:22', '1 Peter 1:19', '1 John 1:7'],
+  covenant: ['Jeremiah 31:31', 'Hebrews 8:6', 'Luke 22:20'],
+  creation: ['Colossians 1:16', 'Revelation 4:11', 'Isaiah 45:18'],
+  beginning: ['John 1:1', 'Proverbs 8:22', 'Revelation 22:13'],
+  heaven: ['Revelation 21:1', 'Matthew 6:20', 'Philippians 3:20'],
+  earth: ['Psalm 24:1', 'Isaiah 66:1', 'Matthew 5:5'],
+  water: ['John 4:14', 'Revelation 22:1', 'Isaiah 55:1'],
+  bread: ['John 6:35', 'Matthew 4:4', '1 Corinthians 10:16'],
+  temple: ['1 Corinthians 3:16', 'Ephesians 2:21', 'Revelation 21:22'],
+  sacrifice: ['Romans 12:1', 'Hebrews 10:12', 'Ephesians 5:2'],
+  truth: ['John 14:6', 'John 8:32', 'Psalm 119:160'],
+  way: ['John 14:6', 'Proverbs 3:6', 'Isaiah 30:21'],
+  life: ['John 14:6', '1 John 5:12', 'Romans 6:23'],
+  death: ['Romans 6:23', '1 Corinthians 15:55', 'Revelation 21:4'],
+  joy: ['Nehemiah 8:10', 'Psalm 16:11', 'Galatians 5:22'],
+  glory: ['Romans 8:18', '2 Corinthians 3:18', 'Isaiah 43:7'],
+  power: ['Acts 1:8', '2 Timothy 1:7', 'Ephesians 1:19'],
+  wisdom: ['Proverbs 9:10', 'James 1:5', 'Colossians 2:3'],
+  word: ['Psalm 119:105', 'Hebrews 4:12', '2 Timothy 3:16'],
+  son: ['Hebrews 1:2', 'Matthew 3:17', 'Colossians 1:15'],
+  father: ['Matthew 6:9', 'Romans 8:15', '1 John 3:1'],
+  holy: ['1 Peter 1:16', 'Isaiah 6:3', 'Leviticus 11:44'],
+  righteous: ['Romans 1:17', '2 Corinthians 5:21', 'Philippians 3:9'],
+  salvation: ['Acts 4:12', 'Romans 10:10', 'Ephesians 2:8'],
+  darkness: ['John 1:5', '1 Peter 2:9', 'Ephesians 5:8'],
+  mercy: ['Lamentations 3:22', 'Titus 3:5', 'Hebrews 4:16'],
+  forgive: ['Ephesians 4:32', 'Colossians 3:13', 'Matthew 6:14']
+};
 
-  const ref1 = `${ref1Book} ${(hash % 10) + 1}:${(hash % 20) + 1}`;
-  const ref2 = `${ref2Book} ${((hash+5) % 10) + 1}:${((hash+7) % 20) + 1}`;
+export async function getCrossReferences(book: string, chapter: number, verse: number, verseText: string): Promise<CrossReference[]> {
+  const words = verseText.toLowerCase().replace(/[.,;:"?!()]/g, '').split(' ');
+  const matchedThemes = Object.keys(THEMATIC_MAPPING).filter(theme => words.includes(theme));
+  
+  let selectedRefs: string[] = [];
+
+  if (matchedThemes.length > 0) {
+    // Pick references from matched themes
+    matchedThemes.forEach(theme => {
+      selectedRefs.push(...THEMATIC_MAPPING[theme]);
+    });
+    // Shuffle and pick 2 unique
+    selectedRefs = [...new Set(selectedRefs)].sort(() => 0.5 - Math.random()).slice(0, 2);
+  } else {
+    // Fallback: use hash to pick pseudo-random from the pool to guarantee we return something
+    const hash = hashString(verseText);
+    const allRefs = Object.values(THEMATIC_MAPPING).flat();
+    selectedRefs.push(allRefs[hash % allRefs.length]);
+    selectedRefs.push(allRefs[(hash + 1) % allRefs.length]);
+  }
 
   const fetchVerseText = async (ref: string) => {
     try {
@@ -121,13 +173,13 @@ export async function getCrossReferences(book: string, chapter: number, verse: n
   };
 
   const [text1, text2] = await Promise.all([
-    fetchVerseText(ref1),
-    fetchVerseText(ref2)
+    fetchVerseText(selectedRefs[0]),
+    fetchVerseText(selectedRefs[1])
   ]);
 
   return [
-    { reference: ref1, textSnippet: text1 },
-    { reference: ref2, textSnippet: text2 }
+    { reference: selectedRefs[0], textSnippet: text1 },
+    { reference: selectedRefs[1], textSnippet: text2 }
   ];
 }
 
@@ -140,22 +192,36 @@ export interface HistoricalGeography {
 }
 
 const BIBLICAL_CITIES = [
-  'Jerusalem', 'Bethlehem', 'Babylon', 'Nazareth', 'Capernaum', 'Jericho',
-  'Damascus', 'Antioch', 'Ephesus', 'Corinth', 'Rome', 'Athens', 'Philippi',
-  'Thessalonica', 'Nineveh', 'Sodom', 'Gomorrah', 'Hebron', 'Bethel', 'Shechem',
-  'Samaria', 'Caesarea', 'Joppa', 'Tyre', 'Sidon', 'Tarsus', 'Cyprus', 'Crete',
-  'Patmos', 'Sinai', 'Gaza', 'Beersheba', 'Gilgal', 'Shiloh', 'Dan',
-  'Gibeon', 'Megiddo', 'Hazor', 'Lachish', 'Gezer', 'Arad', 'En Gedi', 'Qumran',
-  'Masada', 'Petra', 'Edom', 'Moab', 'Ammon', 'Gilead', 'Bashan', 'Galilee',
-  'Judea', 'Idumea', 'Decapolis', 'Perea', 'Nabatea', 'Egypt', 'Assyria',
-  'Persia', 'Media', 'Elam', 'Ur', 'Haran', 'Canaan'
+  // Major Centers & Capitals
+  'Jerusalem', 'Babylon', 'Rome', 'Athens', 'Ephesus', 'Corinth', 'Antioch', 'Damascus', 'Nineveh', 'Samaria',
+  // Israel & Judah
+  'Bethlehem', 'Nazareth', 'Capernaum', 'Jericho', 'Hebron', 'Bethel', 'Shechem', 'Caesarea', 'Joppa', 'Tyre', 'Sidon',
+  'Beersheba', 'Gilgal', 'Shiloh', 'Dan', 'Gibeon', 'Megiddo', 'Hazor', 'Lachish', 'Gezer', 'Arad', 'En Gedi', 'Qumran', 'Masada',
+  'Tiberias', 'Cana', 'Bethsaida', 'Chorazin', 'Magdala', 'Nain', 'Sychar', 'Emmaus', 'Bethany', 'Bethphage', 'Gethsemane',
+  // Ancient Near East & Egypt
+  'Ur', 'Haran', 'Sodom', 'Gomorrah', 'Memphis', 'Thebes', 'Alexandria', 'Goshen', 'Succoth', 'Pi-hahiroth', 'Migdol', 'Baal-zephon',
+  'Marah', 'Elim', 'Rephidim', 'Kadesh Barnea', 'Ezion Geber', 'Elath', 'Susa', 'Ecbatana', 'Persepolis', 'Pasargadae',
+  // Paul's Journeys & Asia Minor
+  'Tarsus', 'Derbe', 'Lystra', 'Iconium', 'Pisidian Antioch', 'Perga', 'Attalia', 'Troas', 'Assos', 'Mitylene', 'Chios', 'Samos',
+  'Miletus', 'Cos', 'Rhodes', 'Patara', 'Myra', 'Cnidus', 'Salmone', 'Fair Havens', 'Phoenix', 'Cauda', 'Syracuse', 'Rhegium', 'Puteoli',
+  'Forum of Appius', 'Three Taverns', 'Philippi', 'Amphipolis', 'Apollonia', 'Thessalonica', 'Berea', 'Cenchrea', 'Colossae', 'Laodicea',
+  'Hierapolis', 'Sardis', 'Philadelphia', 'Thyatira', 'Pergamum', 'Smyrna',
+  // Regions & Nations
+  'Egypt', 'Assyria', 'Persia', 'Media', 'Elam', 'Canaan', 'Edom', 'Moab', 'Ammon', 'Gilead', 'Bashan', 'Galilee', 'Judea', 'Idumea',
+  'Decapolis', 'Perea', 'Nabatea', 'Arabia', 'Syria', 'Phoenicia', 'Philistia', 'Macedonia', 'Achaia', 'Dalmatia', 'Illyricum', 'Italy',
+  'Spain', 'Cyprus', 'Crete', 'Patmos', 'Malta', 'Ethiopia', 'Cush', 'Put', 'Lud', 'Tarshish', 'Ophir', 'Sheba', 'Dedan', 'Kedar',
+  // Bodies of Water & Mountains
+  'Jordan River', 'Sea of Galilee', 'Dead Sea', 'Great Sea', 'Red Sea', 'Nile', 'Euphrates', 'Tigris', 'Mount Sinai', 'Mount Horeb',
+  'Mount Carmel', 'Mount Zion', 'Mount of Olives', 'Mount Tabor', 'Mount Hermon', 'Mount Nebo', 'Mount Seir', 'Mount Hor', 'Mount Gerizim',
+  'Mount Ebal', 'Mount Gilboa', 'Mount Moriah', 'Mount Ararat'
 ];
 
 /**
  * Fetches Historical Geography data from Wikipedia.
  */
 export async function getHistoricalGeography(book: string, verseText: string): Promise<HistoricalGeography | null> {
-  const foundCity = BIBLICAL_CITIES.find(city => verseText.includes(city));
+  const verseLower = verseText.toLowerCase();
+  const foundCity = BIBLICAL_CITIES.find(city => verseLower.includes(city.toLowerCase()));
 
   if (foundCity) {
     try {
