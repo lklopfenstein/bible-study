@@ -8,6 +8,7 @@ import InlineStudyContent from './InlineStudyContent';
 import DeepStudyDrawer from './DeepStudyDrawer';
 import { Bookmark as BookmarkIcon, FileText, Map } from 'lucide-react';
 import { useClickOutside } from '@/hooks/useClickOutside';
+import { useUser } from '@/hooks/useUser';
 
 interface Props {
   verse: BibleVerse;
@@ -24,50 +25,98 @@ export default function InteractiveVerse({ verse, book }: Props) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [hasNote, setHasNote] = useState(false);
 
+  const { user, supabase } = useUser();
+
   const containerRef = useRef<HTMLSpanElement>(null);
   const referenceString = `${book.charAt(0).toUpperCase() + book.slice(1)} ${verse.chapter}:${verse.verse}`;
 
-  // Load saved state from localStorage on mount
+  // Load saved state from localStorage AND Supabase on mount
   useEffect(() => {
-    const savedHighlight = localStorage.getItem(`highlight-${referenceString}`);
-    if (savedHighlight) setHighlightColor(savedHighlight);
+    const loadState = async () => {
+      // Local Fallback first
+      const savedHighlight = localStorage.getItem(`highlight-${referenceString}`);
+      if (savedHighlight) setHighlightColor(savedHighlight);
 
-    const savedBookmark = localStorage.getItem(`bookmark-${referenceString}`);
-    if (savedBookmark) setIsBookmarked(savedBookmark === 'true');
+      const savedBookmark = localStorage.getItem(`bookmark-${referenceString}`);
+      if (savedBookmark) setIsBookmarked(savedBookmark === 'true');
 
-    // Check if there's a note in the global notes array
-    const globalNotes = localStorage.getItem('study-bible-notes');
-    if (globalNotes) {
-      try {
-        const parsed = JSON.parse(globalNotes);
-        const exists = parsed.some((n: any) => n.reference.toLowerCase() === referenceString.toLowerCase());
-        setHasNote(exists);
-      } catch (e) {}
-    }
-  }, [referenceString]);
+      const globalNotes = localStorage.getItem('study-bible-notes');
+      if (globalNotes) {
+        try {
+          const parsed = JSON.parse(globalNotes);
+          const exists = parsed.some((n: any) => n.reference.toLowerCase() === referenceString.toLowerCase());
+          setHasNote(exists);
+        } catch (e) {}
+      }
 
-  const handleHighlight = (color: string) => {
+      // Cloud Override if logged in
+      if (user) {
+        const { data } = await supabase
+          .from('user_data')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('book', book)
+          .eq('chapter', verse.chapter)
+          .eq('verse', verse.verse);
+        
+        if (data && data.length > 0) {
+          const highlight = data.find(d => d.type === 'highlight');
+          if (highlight) setHighlightColor(highlight.color || 'transparent');
+          
+          const bookmark = data.find(d => d.type === 'bookmark');
+          if (bookmark) setIsBookmarked(true);
+
+          const note = data.find(d => d.type === 'note');
+          if (note) setHasNote(true);
+        }
+      }
+    };
+
+    loadState();
+  }, [referenceString, user, supabase, book, verse]);
+
+  const handleHighlight = async (color: string) => {
     setHighlightColor(color);
+    
     if (color === 'transparent') {
       localStorage.removeItem(`highlight-${referenceString}`);
+      if (user) {
+        await supabase.from('user_data').delete()
+          .match({ user_id: user.id, book, chapter: verse.chapter, verse: verse.verse, type: 'highlight' });
+      }
     } else {
       localStorage.setItem(`highlight-${referenceString}`, color);
+      if (user) {
+        // Delete old highlight first to avoid duplicates
+        await supabase.from('user_data').delete()
+          .match({ user_id: user.id, book, chapter: verse.chapter, verse: verse.verse, type: 'highlight' });
+        await supabase.from('user_data').insert({
+          user_id: user.id, book, chapter: verse.chapter, verse: verse.verse, type: 'highlight', color
+        });
+      }
     }
   };
 
-  const handleBookmark = () => {
+  const handleBookmark = async () => {
     const newState = !isBookmarked;
     setIsBookmarked(newState);
     if (newState) {
       localStorage.setItem(`bookmark-${referenceString}`, 'true');
+      if (user) {
+        await supabase.from('user_data').insert({
+          user_id: user.id, book, chapter: verse.chapter, verse: verse.verse, type: 'bookmark'
+        });
+      }
     } else {
       localStorage.removeItem(`bookmark-${referenceString}`);
+      if (user) {
+        await supabase.from('user_data').delete()
+          .match({ user_id: user.id, book, chapter: verse.chapter, verse: verse.verse, type: 'bookmark' });
+      }
     }
   };
 
-  const handleAddNote = () => {
-    // In a real app, this would open a modal to write the note.
-    // For now, we'll just mock saving a note to trigger the indicator.
+  const handleAddNote = async () => {
     const globalNotesStr = localStorage.getItem('study-bible-notes');
     const notes = globalNotesStr ? JSON.parse(globalNotesStr) : [];
     
@@ -80,6 +129,13 @@ export default function InteractiveVerse({ verse, book }: Props) {
     
     localStorage.setItem('study-bible-notes', JSON.stringify(notes));
     setHasNote(true);
+
+    if (user) {
+      await supabase.from('user_data').insert({
+        user_id: user.id, book, chapter: verse.chapter, verse: verse.verse, type: 'note', content: "Inline note added from reader view."
+      });
+    }
+
     alert('Note added! (Check the Notes page)');
   };
 
