@@ -1,117 +1,127 @@
 .card {
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-xl);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  /* The boho arch shape */
+  border-radius: 200px 200px 16px 16px;
+  padding: 4rem 2rem 3rem 2rem;
+  box-shadow: 0 10px 30px rgba(194, 122, 96, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
   margin-bottom: var(--spacing-xl);
   width: 100%;
-  max-width: 650px;
+  max-width: 500px;
   text-align: center;
   position: relative;
   overflow: hidden;
   transition: box-shadow var(--transition-speed) ease, transform var(--transition-speed) ease;
 }
 
-.card::before {
+/* Add a delicate inner border tracing the arch */
+.card::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--text-accent) 0%, #d4a373 100%);
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  border: 1px dashed rgba(194, 122, 96, 0.2); /* Terracotta tint */
+  border-radius: 190px 190px 8px 8px;
+  pointer-events: none;
 }
 
 .card:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 15px 40px rgba(194, 122, 96, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
   transform: translateY(-2px);
 }
 
 .cardTitle {
-  font-size: 0.9rem;
-  color: var(--text-accent);
+  font-size: 0.85rem;
+  color: var(--boho-sage);
   text-transform: uppercase;
-  letter-spacing: 0.15em;
-  margin-bottom: var(--spacing-lg);
+  letter-spacing: 0.2em;
+  margin-bottom: 2.5rem;
   font-family: var(--font-sans);
-  font-weight: 600;
-  opacity: 0.9;
+  font-weight: 500;
 }
 
 .scriptureContainer {
   position: relative;
-  margin-bottom: var(--spacing-lg);
-  padding: 0 var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+  padding: 0 1rem;
 }
 
 .quoteMark {
   font-family: var(--font-serif);
-  font-size: 4rem;
-  color: var(--border-color);
-  opacity: 0.3;
+  font-size: 5rem;
+  color: var(--bg-secondary);
   position: absolute;
   line-height: 0;
   user-select: none;
+  z-index: 0;
 }
 
 .quoteMark:first-child {
-  top: 1rem;
+  top: 1.5rem;
   left: -1rem;
 }
 
 .quoteMark:last-child {
-  bottom: -1rem;
+  bottom: -2rem;
   right: -1rem;
 }
 
 .scripture {
-  font-size: 1.6rem;
+  font-size: 1.75rem;
   font-family: var(--font-serif);
   font-style: italic;
   color: var(--text-primary);
-  line-height: 1.6;
+  line-height: 1.5;
   position: relative;
   z-index: 1;
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+  font-weight: 400;
+  letter-spacing: -0.01em;
 }
 
 .referenceLink {
   display: inline-block;
   text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
-  transition: background-color var(--transition-speed) ease;
+  padding: 0.5rem 1.5rem;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-speed) ease;
+  position: relative;
+  z-index: 2;
 }
 
 .referenceLink:hover {
-  background-color: var(--bg-tertiary);
+  background-color: var(--bg-highlight);
+  transform: scale(1.02);
 }
 
 .reference {
   display: block;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 500;
   color: var(--text-accent);
   font-family: var(--font-sans);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .reference::before {
   content: '— ';
-  opacity: 0.7;
+  color: var(--boho-sage);
 }
 
 @media (max-width: 600px) {
-  .scripture {
-    font-size: 1.3rem;
-  }
-  
-  .quoteMark {
-    font-size: 3rem;
-  }
-  
   .card {
-    padding: var(--spacing-lg);
+    border-radius: 150px 150px 16px 16px;
+    padding: 3rem 1.5rem 2rem 1.5rem;
+  }
+  .card::after {
+    border-radius: 140px 140px 8px 8px;
+  }
+  .scripture {
+    font-size: 1.4rem;
+  }
+  .quoteMark {
+    font-size: 4rem;
   }
 }

@@ -1,16 +1,17 @@
 /* src/app/globals.css */
 :root {
-  /* Cozy Earth Tones & Feng Shui Palette */
-  --bg-primary: #fdfaf6; /* Soft parchment / off-white */
-  --bg-secondary: #f4efe8; /* Slightly darker parchment */
-  --bg-accent: #eaddcf; /* Warm sand */
-  --bg-highlight: #f8e1cc; /* Soft highlight for embedded notes */
+  /* Cozy Earth Tones & Premium Boho Palette */
+  --bg-primary: #FCF9F2; /* Creamy off-white */
+  --bg-secondary: #F3EFE6; /* Warm oat/linen */
+  --bg-accent: #E8DFD1; /* Soft sand */
+  --bg-highlight: #FFF5EC; /* Very light warm glow */
   
-  --text-primary: #2d2a26; /* Deep charcoal, easier on eyes than pure black */
-  --text-secondary: #5e5953; /* Soft brown/grey for secondary text */
-  --text-accent: #8b5a2b; /* Earthy brown/copper for highlights/links */
+  --text-primary: #38332E; /* Warm dark espresso, very premium */
+  --text-secondary: #7A7268; /* Muted taupe */
+  --text-accent: #C27A60; /* Terracotta / muted clay */
   
-  --border-color: #eaddcf;
+  --border-color: #E8DFD1;
+  --boho-sage: #9CA796; /* Subtle sage accent */
   
   /* Layout & Spacing */
   --max-width: 800px;
@@ -59,6 +60,8 @@
 
 body {
   background-color: var(--bg-primary);
+  /* A very subtle SVG noise texture to feel like paper/linen */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E");
   color: var(--text-primary);
   font-family: var(--font-sans);
   line-height: 1.6;
