@@ -32,48 +32,6 @@
   width: 100%;
 }
 
-.card {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-md);
-  margin-bottom: var(--spacing-xl);
-  width: 100%;
-  max-width: 600px;
-  text-align: center;
-  transition: box-shadow var(--transition-speed) ease, transform var(--transition-speed) ease;
-}
-
-.card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-}
-
-.cardTitle {
-  font-size: 1.1rem;
-  color: var(--text-accent);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: var(--spacing-md);
-  font-family: var(--font-sans);
-}
-
-.scripture {
-  font-size: 1.5rem;
-  font-family: var(--font-serif);
-  font-style: italic;
-  margin-bottom: var(--spacing-md);
-  color: var(--text-primary);
-  line-height: 1.6;
-}
-
-.reference {
-  display: block;
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-}
 
 .button {
   display: inline-block;

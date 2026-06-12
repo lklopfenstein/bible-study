@@ -1,6 +1,7 @@
 import styles from './page.module.css';
 import Link from 'next/link';
 import StartReadingButton from '@/components/ui/StartReadingButton';
+import DailyVerse from '@/components/ui/DailyVerse';
 
 export default function Home() {
   return (
@@ -11,14 +12,7 @@ export default function Home() {
       </header>
 
       <section className={styles.hero}>
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>Verse of the Day</h2>
-          <p className={styles.scripture}>
-            "For I know the plans I have for you," declares the LORD, "plans to prosper you and not to harm you, plans to give you hope and a future."
-          </p>
-          <span className={styles.reference}>Jeremiah 29:11</span>
-        </div>
-
+        <DailyVerse />
         <StartReadingButton />
       </section>
     </main>
