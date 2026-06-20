@@ -7,6 +7,7 @@ import BookSelector from '@/components/ui/BookSelector';
 import SaveReadingState from '@/components/ui/SaveReadingState';
 import VersionSelector from '@/components/ui/VersionSelector';
 import AudioPlayer from '@/components/ui/AudioPlayer';
+import GrantXp from '@/components/ui/GrantXp';
 import { BIBLE_BOOKS } from '@/lib/bibleData';
 
 export default async function ChapterPage({
@@ -54,6 +55,7 @@ export default async function ChapterPage({
   return (
     <main className={styles.readerContainer}>
       <SaveReadingState book={book} chapter={chapterNum} />
+      <GrantXp amount={10} reason="Read a chapter" />
       <div className={styles.controls}>
         {prevLink ? (
           <Link href={prevLink} className={styles.navButton}>

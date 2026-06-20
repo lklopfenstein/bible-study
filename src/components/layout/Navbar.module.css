@@ -1,50 +1,83 @@
+.navbarContainer {
+  position: sticky;
+  top: 1rem;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  padding: 0 1rem;
+}
+
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-md) var(--spacing-lg);
-  background-color: var(--bg-primary);
-  border-bottom: 1px solid var(--border-color);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  padding: 0.75rem 1.5rem;
+  background-color: rgba(252, 249, 242, 0.85); /* var(--bg-primary) with transparency */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(194, 122, 96, 0.15); /* Delicate terracotta border */
+  border-radius: 100px;
+  box-shadow: 0 8px 32px rgba(56, 51, 46, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  width: 100%;
+  max-width: 800px;
+  transition: all var(--transition-speed) ease;
+}
+
+.navbar:hover {
+  box-shadow: 0 12px 40px rgba(56, 51, 46, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
 }
 
 .logoText {
   font-family: var(--font-serif);
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 500;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-right: 2rem;
 }
 
 .links {
   display: flex;
-  gap: var(--spacing-lg);
+  gap: 1.5rem;
+  align-items: center;
 }
 
 .link {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 0.4rem;
   color: var(--text-secondary);
   font-weight: 500;
-  transition: color var(--transition-speed) ease;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  transition: all var(--transition-speed) ease;
+  padding: 0.4rem 0.8rem;
+  border-radius: 50px;
 }
 
 .link:hover {
-  color: var(--text-accent);
+  color: var(--text-primary);
+  background-color: rgba(156, 167, 150, 0.15); /* var(--boho-sage) very transparent */
 }
 
 @media (max-width: 600px) {
+  .navbarContainer {
+    top: 0.5rem;
+  }
   .navbar {
-    flex-direction: column;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md);
+    padding: 0.5rem 1rem;
+    border-radius: 30px;
+  }
+  .logoText {
+    font-size: 1.1rem;
+    margin-right: 1rem;
   }
   .links {
-    width: 100%;
-    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .link {
+    padding: 0.4rem;
   }
   .link span {
     display: none;

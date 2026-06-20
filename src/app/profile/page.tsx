@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import { Settings, BookOpen, Clock, Loader2, User as UserIcon } from 'lucide-react';
 import { useUser } from '@/hooks/useUser';
+import { useAppMode, RELICS_DB } from '@/hooks/useAppMode';
 
 export default function ProfilePage() {
   const { user, loading, supabase } = useUser();
+  const { mode, xp, level, relics } = useAppMode();
   const [theme, setTheme] = useState('light');
-
+  
   // Auth Form State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -141,6 +143,45 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {mode === 'explorer' && (
+        <div className={styles.settingsSection} style={{ marginTop: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <h2 className={styles.sectionTitle} style={{ margin: 0 }}>
+              🏆 Trophy Room
+            </h2>
+            <div style={{ background: 'var(--bg-primary)', padding: '4px 12px', borderRadius: '100px', fontWeight: 600, color: 'var(--boho-sage)' }}>
+              Level {level} ({xp} XP)
+            </div>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '16px' }}>
+            {Object.values(RELICS_DB).map(relic => {
+              const isUnlocked = relics.includes(relic.id);
+              return (
+                <div 
+                  key={relic.id} 
+                  style={{
+                    background: isUnlocked ? 'var(--bg-secondary)' : 'var(--bg-primary)',
+                    padding: '16px',
+                    borderRadius: '12px',
+                    textAlign: 'center',
+                    border: `1px solid ${isUnlocked ? 'var(--text-accent)' : 'var(--border-color)'}`,
+                    opacity: isUnlocked ? 1 : 0.4,
+                    filter: isUnlocked ? 'none' : 'grayscale(100%)',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>{relic.icon}</div>
+                  <h4 style={{ margin: '0 0 4px 0', fontSize: '0.9rem', color: 'var(--text-primary)' }}>{relic.name}</h4>
+                  {isUnlocked && <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.2 }}>{relic.description}</p>}
+                  {!isUnlocked && <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.2 }}>Locked</p>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className={styles.settingsSection}>
         <h2 className={styles.sectionTitle}>

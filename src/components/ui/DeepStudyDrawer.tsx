@@ -5,6 +5,7 @@ import { X, Loader2, Search } from 'lucide-react';
 import styles from './DeepStudyDrawer.module.css';
 import { getStrongsData, getCommentary, getCrossReferences, getHistoricalGeography, StrongsDefinition, Commentary, CrossReference, HistoricalGeography } from '@/lib/studyApi';
 import { BIBLE_BOOKS } from '@/lib/bibleData';
+import { useAppMode } from '@/hooks/useAppMode';
 
 interface Props {
   isOpen: boolean;
@@ -16,13 +17,15 @@ interface Props {
 }
 
 export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseRef, verseText }: Props) {
-  const [activeTab, setActiveTab] = useState<'strongs' | 'commentary' | 'crossref' | 'maps'>('strongs');
+  const { mode, addXp } = useAppMode();
+  const [activeTab, setActiveTab] = useState<'strongs' | 'commentary' | 'crossref' | 'maps' | 'lore'>('strongs');
   
   const [loading, setLoading] = useState(false);
   const [strongs, setStrongs] = useState<StrongsDefinition[]>([]);
   const [commentaries, setCommentaries] = useState<Commentary[]>([]);
   const [crossRefs, setCrossRefs] = useState<CrossReference[]>([]);
   const [geography, setGeography] = useState<HistoricalGeography | null>(null);
+  const [lore, setLore] = useState<any>(null);
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
 
   // Lock body scroll when drawer is open
@@ -45,17 +48,34 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
       try {
         // Parse the first verse from the reference string (e.g. "1-5" -> 1)
         const firstVerseNum = parseInt(verseRef.split('-')[0]) || 1;
-        const [sData, cData, crData, gData] = await Promise.all([
+        const promises: Promise<any>[] = [
           getStrongsData(book, chapter, firstVerseNum, verseText),
           getCommentary(book, chapter, firstVerseNum, verseText),
           getCrossReferences(book, chapter, firstVerseNum, verseText),
           getHistoricalGeography(book, verseText)
-        ]);
+        ];
+
+        if (mode === 'explorer') {
+          promises.push(
+            fetch('/api/lore', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ book, chapter })
+            }).then(res => res.json()).catch(() => null)
+          );
+        }
+
+        const results = await Promise.all(promises);
+        
         if (isMounted) {
-          setStrongs(sData);
-          setCommentaries(cData);
-          setCrossRefs(crData);
-          setGeography(gData);
+          setStrongs(results[0]);
+          setCommentaries(results[1]);
+          setCrossRefs(results[2]);
+          setGeography(results[3]);
+          if (mode === 'explorer' && results[4]) {
+            setLore(results[4]);
+          }
+          if (mode === 'explorer') addXp(5); // Grant 5 XP for opening deep study
         }
       } catch (error) {
         console.error("Failed to fetch deep study data");
@@ -91,6 +111,9 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
           <button className={activeTab === 'commentary' ? styles.activeTab : styles.tab} onClick={() => setActiveTab('commentary')}>Commentary</button>
           <button className={activeTab === 'crossref' ? styles.activeTab : styles.tab} onClick={() => setActiveTab('crossref')}>Cross-Refs</button>
           <button className={activeTab === 'maps' ? styles.activeTab : styles.tab} onClick={() => setActiveTab('maps')}>Geography</button>
+          {mode === 'explorer' && (
+            <button className={activeTab === 'lore' ? styles.activeTab : styles.tab} onClick={() => setActiveTab('lore')}>Epic Lore ⚔️</button>
+          )}
         </div>
 
         <div className={styles.contentArea}>
@@ -207,6 +230,69 @@ export default function DeepStudyDrawer({ isOpen, onClose, book, chapter, verseR
                       />
                     </div>
                   </div>
+                </div>
+              )}
+
+              {activeTab === 'lore' && mode === 'explorer' && lore && (
+                <div className={styles.loreTab} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {lore.hero && (
+                    <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)', position: 'relative', overflow: 'hidden' }}>
+                      {/* Cool subtle background accent */}
+                      <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: '150px', height: '150px', background: 'var(--text-accent)', filter: 'blur(60px)', opacity: 0.2 }} />
+                      
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                        <div>
+                          <h3 style={{ margin: 0, fontSize: '1.8rem', color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', fontWeight: 800 }}>{lore.hero.name}</h3>
+                          <span style={{ color: 'var(--boho-sage)', fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>{lore.hero.title}</span>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>WEAPON</div>
+                          <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{lore.hero.weapon}</div>
+                        </div>
+                      </div>
+
+                      <p style={{ fontStyle: 'italic', color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '0.95rem', lineHeight: 1.5 }}>
+                        {lore.hero.description}
+                      </p>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                        <div style={{ background: 'var(--bg-primary)', padding: '12px', borderRadius: '8px', textAlign: 'center', border: '1px solid var(--border-color)' }}>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 600 }}>STR</div>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-accent)' }}>{lore.hero.stats.strength}</div>
+                        </div>
+                        <div style={{ background: 'var(--bg-primary)', padding: '12px', borderRadius: '8px', textAlign: 'center', border: '1px solid var(--border-color)' }}>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 600 }}>WIS</div>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#3b82f6' }}>{lore.hero.stats.wisdom}</div>
+                        </div>
+                        <div style={{ background: 'var(--bg-primary)', padding: '12px', borderRadius: '8px', textAlign: 'center', border: '1px solid var(--border-color)' }}>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 600 }}>CRG</div>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--boho-sage)' }}>{lore.hero.stats.courage}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {lore.tactics && (
+                    <div style={{ padding: '16px', background: 'var(--bg-secondary)', borderRadius: '12px', borderLeft: '4px solid var(--text-accent)' }}>
+                      <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>⚔️</span> Tactics & Strategy
+                      </h4>
+                      <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6 }}>{lore.tactics}</p>
+                    </div>
+                  )}
+
+                  {lore.creatures && lore.creatures.length > 0 && (
+                    <div>
+                      <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-accent)' }}>Noteworthy Entities</h4>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        {lore.creatures.map((c: string, i: number) => (
+                          <span key={i} style={{ background: 'var(--bg-secondary)', padding: '6px 12px', borderRadius: '100px', fontSize: '0.85rem', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
+                            🐉 {c}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

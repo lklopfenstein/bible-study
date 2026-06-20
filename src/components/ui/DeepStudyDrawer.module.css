@@ -14,26 +14,30 @@
 .drawer {
   width: 100%;
   max-width: 450px;
-  background-color: var(--bg-primary);
+  background-color: rgba(252, 249, 242, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   height: 100%;
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+  box-shadow: -8px 0 40px rgba(56, 51, 46, 0.08);
   display: flex;
   flex-direction: column;
   animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   font-family: var(--font-sans);
+  border-left: 1px solid rgba(194, 122, 96, 0.1);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--border-color);
-  background-color: var(--bg-secondary);
+  padding: 1.5rem var(--spacing-lg);
+  border-bottom: 1px solid rgba(194, 122, 96, 0.15);
+  background: linear-gradient(to bottom, rgba(252, 249, 242, 1), rgba(252, 249, 242, 0.95));
 }
 
 .title {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
+  font-family: var(--font-serif);
   color: var(--text-primary);
   margin-bottom: 4px;
 }
@@ -57,9 +61,11 @@
 .tabs {
   display: flex;
   overflow-x: auto;
-  border-bottom: 1px solid var(--border-color);
-  background-color: var(--bg-primary);
+  border-bottom: 1px solid rgba(194, 122, 96, 0.15);
+  background-color: rgba(252, 249, 242, 0.95);
   scrollbar-width: none;
+  padding: 0 var(--spacing-md);
+  gap: var(--spacing-sm);
 }
 
 .tabs::-webkit-scrollbar {
@@ -67,17 +73,22 @@
 }
 
 .tab, .activeTab {
-  padding: var(--spacing-md);
+  padding: 0.8rem 1rem;
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--text-secondary);
   border-bottom: 2px solid transparent;
   white-space: nowrap;
   transition: all var(--transition-speed) ease;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin-top: 0.5rem;
 }
 
 .tab:hover {
   color: var(--text-primary);
+  background-color: rgba(156, 167, 150, 0.05);
+  border-radius: 8px 8px 0 0;
 }
 
 .activeTab {
@@ -88,9 +99,9 @@
 .contentArea {
   flex: 1;
   overflow-y: auto;
-  padding: var(--spacing-lg);
-  padding-bottom: 80px;
-  background-color: var(--bg-primary);
+  padding: 1.5rem var(--spacing-lg);
+  padding-bottom: 100px;
+  background-color: transparent;
 }
 
 .loader {
@@ -120,10 +131,11 @@
 }
 
 .strongsCard {
-  background-color: var(--bg-secondary);
-  padding: var(--spacing-md);
-  border-radius: var(--radius-md);
-  border-left: 3px solid var(--text-accent);
+  background-color: rgba(255, 255, 255, 0.6);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid var(--boho-sage);
+  box-shadow: 0 4px 12px rgba(56, 51, 46, 0.03);
 }
 
 .strongsHeader {
@@ -181,10 +193,11 @@
 }
 
 .commentaryCard, .crossRefCard {
-  background-color: var(--bg-secondary);
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  background-color: rgba(255, 255, 255, 0.6);
+  padding: 1.5rem;
+  border-radius: 20px 20px 0 20px; /* Slight boho arch shape */
+  box-shadow: 0 4px 16px rgba(56, 51, 46, 0.04);
+  border: 1px solid rgba(194, 122, 96, 0.05);
 }
 
 .commentarySource, .crossRefTitle {
@@ -292,8 +305,8 @@
 @media (max-width: 600px) {
   .drawer {
     max-width: 100%;
-    margin-top: 10vh; /* Act as a bottom sheet */
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    margin-top: 5vh; /* Act as a bottom sheet */
+    border-radius: 30px 30px 0 0;
     animation: slideUpSheet 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 

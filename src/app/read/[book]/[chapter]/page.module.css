@@ -1,8 +1,9 @@
 .readerContainer {
   max-width: 800px;
   margin: 0 auto;
-  padding: var(--spacing-xl) var(--spacing-md);
+  padding: 4rem var(--spacing-md);
   min-height: calc(100vh - 70px);
+  background-color: transparent;
 }
 
 .controls {
@@ -10,42 +11,52 @@
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: var(--spacing-xl);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--border-color);
+  gap: 16px;
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(194, 122, 96, 0.15); /* Terracotta tint */
 }
 
 .bookTitle {
-  font-size: 2.5rem;
+  font-size: 3rem;
   font-family: var(--font-serif);
   color: var(--text-primary);
   text-align: center;
+  font-weight: 400;
+  letter-spacing: -0.02em;
 }
 
 .navButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 54px;
+  height: 54px;
   border-radius: var(--radius-full);
-  background-color: var(--bg-secondary);
+  background-color: rgba(255, 255, 255, 0.5);
   color: var(--text-secondary);
   transition: all var(--transition-speed) ease;
+  border: 1px solid rgba(194, 122, 96, 0.1);
+  box-shadow: 0 4px 12px rgba(56, 51, 46, 0.04);
 }
 
 .navButton:hover {
   background-color: var(--text-accent);
   color: var(--bg-primary);
-  transform: scale(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(194, 122, 96, 0.2);
 }
 
 .scriptureContent {
   font-family: var(--font-serif);
-  font-size: 1.25rem;
-  line-height: 1.8;
+  font-size: 1.35rem;
+  line-height: 2;
   color: var(--text-primary);
+  text-align: justify;
+}
+
+.scriptureContent p {
+  margin-bottom: 1.5rem;
 }
 
 .translationNote {

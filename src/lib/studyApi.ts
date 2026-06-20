@@ -186,47 +186,76 @@ const BOOK_CROSS_REFS: Record<string, string[]> = {
 };
 
 export async function getCrossReferences(book: string, chapter: number, verse: number, verseText: string): Promise<CrossReference[]> {
-  const words = verseText.toLowerCase().replace(/[.,;:"?!()]/g, '').split(' ');
-  const matchedThemes = Object.keys(THEMATIC_MAPPING).filter(theme => words.includes(theme));
-  
-  let selectedRefs: string[] = [];
-
-  if (matchedThemes.length > 0) {
-    // Pick references from matched themes
-    matchedThemes.forEach(theme => {
-      selectedRefs.push(...THEMATIC_MAPPING[theme]);
+  try {
+    const res = await fetch('/api/crossref', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ book, chapter, verse })
     });
-    // Shuffle and pick 2 unique
-    selectedRefs = [...new Set(selectedRefs)].sort(() => 0.5 - Math.random()).slice(0, 2);
-  } else {
-    // Fallback: Pick from the book's specific cross-references, or general fallback
-    const bookRefs = BOOK_CROSS_REFS[book] || ['John 3:16', 'Romans 8:28', 'Proverbs 3:5'];
-    const shuffled = [...bookRefs].sort(() => 0.5 - Math.random()).slice(0, 2);
-    selectedRefs = shuffled.length >= 2 ? shuffled : [...shuffled, 'Psalm 119:105'];
+    
+    if (res.ok) {
+      const data = await res.json();
+      const rawRefs: string[] = data.crossrefs || [];
+      
+      if (rawRefs.length > 0) {
+        // Fetch the actual text for these references
+        const fetchVerseText = async (ref: string) => {
+          try {
+            // Convert standard abbreviations if necessary, bible-api handles most
+            const parsedRef = ref.replace(/^[a-z]+/, (match) => {
+              const abbrMap: Record<string, string> = {
+                'gen': 'Genesis', 'exo': 'Exodus', 'lev': 'Leviticus', 'num': 'Numbers', 'deu': 'Deuteronomy',
+                'jos': 'Joshua', 'jdg': 'Judges', 'rut': 'Ruth', '1sa': '1 Samuel', '2sa': '2 Samuel',
+                '1ki': '1 Kings', '2ki': '2 Kings', '1ch': '1 Chronicles', '2ch': '2 Chronicles', 'ezr': 'Ezra',
+                'neh': 'Nehemiah', 'est': 'Esther', 'job': 'Job', 'psa': 'Psalms', 'pro': 'Proverbs',
+                'ecc': 'Ecclesiastes', 'sng': 'Song of Solomon', 'isa': 'Isaiah', 'jer': 'Jeremiah', 'lam': 'Lamentations',
+                'ezk': 'Ezekiel', 'dan': 'Daniel', 'hos': 'Hosea', 'jol': 'Joel', 'amo': 'Amos',
+                'oba': 'Obadiah', 'jon': 'Jonah', 'mic': 'Micah', 'nam': 'Nahum', 'hab': 'Habakkuk',
+                'zep': 'Zephaniah', 'hag': 'Haggai', 'zec': 'Zechariah', 'mal': 'Malachi', 'mat': 'Matthew',
+                'mrk': 'Mark', 'luk': 'Luke', 'jhn': 'John', 'act': 'Acts', 'rom': 'Romans',
+                '1co': '1 Corinthians', '2co': '2 Corinthians', 'gal': 'Galatians', 'eph': 'Ephesians', 'php': 'Philippians',
+                'col': 'Colossians', '1th': '1 Thessalonians', '2th': '2 Thessalonians', '1ti': '1 Timothy', '2ti': '2 Timothy',
+                'tit': 'Titus', 'phm': 'Philemon', 'heb': 'Hebrews', 'jas': 'James', '1pe': '1 Peter',
+                '2pe': '2 Peter', '1jn': '1 John', '2jn': '2 John', '3jn': '3 John', 'jud': 'Jude',
+                'rev': 'Revelation'
+              };
+              return abbrMap[match] || match;
+            });
+
+            const req = await fetch(`https://bible-api.com/${encodeURIComponent(parsedRef)}?translation=web`);
+            if (req.ok) {
+              const resData = await req.json();
+              return { reference: parsedRef, textSnippet: resData.text.trim() };
+            }
+          } catch (e) {
+            console.error(e);
+          }
+          return { reference: ref, textSnippet: "A theological parallel that expands upon the core message delivered in this text." };
+        };
+
+        const resolvedRefs = await Promise.all(rawRefs.map(ref => fetchVerseText(ref)));
+        return resolvedRefs;
+      }
+    }
+  } catch (error) {
+    console.error("Failed to fetch cross references", error);
   }
 
-  const fetchVerseText = async (ref: string) => {
+  // Fallback to safe defaults if API fails or returns no crossrefs
+  const bookRefs = BOOK_CROSS_REFS[book] || ['John 3:16', 'Romans 8:28', 'Proverbs 3:5'];
+  const shuffled = [...bookRefs].sort(() => 0.5 - Math.random()).slice(0, 2);
+  const selectedRefs = shuffled.length >= 2 ? shuffled : [...shuffled, 'Psalm 119:105'];
+  
+  return Promise.all(selectedRefs.map(async (ref) => {
     try {
       const res = await fetch(`https://bible-api.com/${encodeURIComponent(ref)}?translation=web`);
       if (res.ok) {
         const data = await res.json();
-        return data.text.trim();
+        return { reference: ref, textSnippet: data.text.trim() };
       }
-    } catch (e) {
-      console.error(e);
-    }
-    return "A theological parallel that expands upon the core message delivered in this text.";
-  };
-
-  const [text1, text2] = await Promise.all([
-    fetchVerseText(selectedRefs[0]),
-    fetchVerseText(selectedRefs[1])
-  ]);
-
-  return [
-    { reference: selectedRefs[0], textSnippet: text1 },
-    { reference: selectedRefs[1], textSnippet: text2 }
-  ];
+    } catch (e) { }
+    return { reference: ref, textSnippet: "A theological parallel..." };
+  }));
 }
 
 export interface HistoricalGeography {
