@@ -72,8 +72,13 @@ export default function Navbar() {
         )}
 
         <div className={styles.links}>
-          <button onClick={toggleMode} className={styles.link} title="Toggle App Mode">
-            {mode === 'scholar' ? <span style={{ fontSize: '1.2rem' }}>📖</span> : <span style={{ fontSize: '1.2rem' }}>🛡️</span>}
+          <button 
+            onClick={toggleMode} 
+            className={styles.link} 
+            title="Toggle App Mode"
+            style={{ fontSize: '1.2rem' }}
+          >
+            {mode === 'scholar' ? '📖' : '🛡️'}
           </button>
 
           <Link href="/search" className={styles.link}>
